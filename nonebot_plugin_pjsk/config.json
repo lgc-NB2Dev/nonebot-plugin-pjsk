@@ -1,6 +1,11 @@
 {
-    "pink":["airi","emu"],
-    "brown":["akito","Honami"],
-    "grey":["an","ena"],
-    "blue":["Haruka"]
+    "pink":["airi","emu","Luka","Mizuki"],
+    "brown":["akito","Honami","Meiko","Minori"],
+    "grey":["an","ena","Shiho"],
+    "blue":["Haruka","Touya"],
+    "navy":["Ichika"],
+    "cyan":["KAITO","Miku","Shizuku"],
+    "aqua":["Kanade"],
+    "orange":["Kohane","Nene","Len","Rin","Saki","Tsukasa"],
+    "purple":["Mafuyu","Rui"]
 }
