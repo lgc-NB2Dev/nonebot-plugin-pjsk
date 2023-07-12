@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot_plugin_pjsk"
-version = "0.0.1"
+version = "0.0.2"
 description = "PJSK表情包for Nonebot2"
 authors = ["Agnes_Digital <Z735803792@163.com>"]
 license = "MIT"
@@ -34,8 +34,7 @@ pillow = ">=8.4.0"
 [[tool.poetry.source]]
 name = "tencent"
 url = "https://mirrors.cloud.tencent.com/pypi/simple"
-default = false
-secondary = true
+priority = "primary"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
