@@ -6,7 +6,7 @@ from nonebot.plugin import PluginMetadata
 
 from .draw import *
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __plugin_meta__ = PluginMetadata(
     name="pjsk表情",
     description="pjsk表情",

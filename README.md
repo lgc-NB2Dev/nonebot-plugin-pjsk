@@ -6,7 +6,7 @@
 
 <div align="center">
 
-# nonebot_plugin_friends
+# nonebot_plugin_pjsk
 
 __✨PJSK表情包制作✨__
 
@@ -40,6 +40,7 @@ __✨PJSK表情包制作✨__
 
 ## 🙈 其他
 
+- 由于本人没玩过啤酒烧烤，可能出现一些小问题，可以提iss或者[加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈
 - 本项目仅供学习使用，请勿用于商业用途，喜欢该项目可以Star或者提供PR
 - [爱发电](https://afdian.net/a/agnes_digital)
 
