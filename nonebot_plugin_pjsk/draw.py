@@ -17,9 +17,13 @@ stroke_color = "white"
 stroke_width = 7
 default_font_size = 50
 # rotation_angle = 10
-font_style: ImageFont.FreeTypeFont = ImageFont.truetype(
-    str(font_file), size=default_font_size, encoding="utf-8"
-)
+
+try:
+    font_style: ImageFont.FreeTypeFont = ImageFont.truetype(
+        str(font_file), size=default_font_size, encoding="utf-8"
+    )
+except:
+    font_style = None
 
 
 class Text_Config(BaseModel):
