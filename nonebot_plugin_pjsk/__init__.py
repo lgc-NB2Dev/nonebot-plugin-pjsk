@@ -9,7 +9,9 @@ from nonebot.plugin import PluginMetadata
 from .draw import make_ramdom
 from .utils import check_res
 
-__version__ = "0.0.4"
+driver = get_driver()
+
+__version__ = "0.1.0"
 __plugin_meta__ = PluginMetadata(
     name="pjsk表情",
     description="pjsk表情包生成,适配nonebot2的插件",
@@ -32,7 +34,7 @@ async def _(matcher: Matcher, arg: Message = CommandArg()) -> None:
         await matcher.send(MessageSegment.image(await make_ramdom(text)))
 
 
-@get_driver().on_startup()
+@driver.on_startup
 async def _():
     logger.info("检查pjsk资源")
     msg = await check_res()

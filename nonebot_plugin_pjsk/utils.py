@@ -1,9 +1,11 @@
 import aiohttp
 import shutil
+import io
+import zipfile
 
+from nonebot.log import logger
 from .config import module_path, background_path, download_url
 
-zip_path = module_path.joinpath("res.zip")
 
 
 async def get_url(url):
@@ -17,9 +19,15 @@ async def get_url(url):
 
 async def check_res():
     if not background_path.exists():
-        with open(zip_path, mode="wb", encoding="utf-8") as f:
-            f.write(await get_url(download_url))
-        shutil.make_archive(module_path, "zip", zip_path)
+        background_path.mkdir(parents=True,exist_ok=True)
+        logger.info("未检测到资源，开始下载资源")
+        zip_bytes = await get_url(download_url)
+        if not zip_bytes:
+            return "链接错误捏"
+        memory_file = io.BytesIO(zip_bytes)
+
+        with zipfile.ZipFile(memory_file, mode="r") as z:
+            z.extractall(background_path)
         return "初始化完成，成功下载资源"
     else:
         return "检测到已下载资源，跳过下载"

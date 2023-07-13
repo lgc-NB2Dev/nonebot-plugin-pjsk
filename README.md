@@ -26,22 +26,31 @@ __✨PJSK表情包制作✨__
     <img src="https://img.shields.io/badge/nonebot-2.0.0-red.svg" alt="NoneBot">
 </div>
 
-## 效果
+## 指令
+
+- pjsk 【text】
+
+## 示例图
 
 <img src="https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/test.png" width="400" height="400"  alt="pjsk_test">
+
+## 安装
+
+以下方法任意选其一
+
+        pip install nonebot_plugin_pjsk
+        nb plugin install nonebot_plugin_pjsk
 
 ## 资源包
 
 - 启动的时候自动检测并下载
 - （或）在release下载，并放入机器人目录data/pjsk中
-
-## 指令
-
-- pjsk 【text】
+- __启动自动下载需要重启再加载一次__
+- 读取资源的目录应该为：`data/pjsk/resource/{文件夹}/{图片}`
 
 ## 🙈 其他
 
-- 由于本人没玩过啤酒烧烤，可能出现一些小问题，可以提iss或者[加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈
-- 本项目仅供学习使用，请勿用于商业用途，喜欢该项目可以Star或者提供PR
+- 由于本人没玩过啤酒烧烤，可能出现一些小问题，可以提iss或者[加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈~~或者单纯进来玩~~
+- 本项目仅供学习使用，图片资源来自于游戏解包，请勿用于商业用途，喜欢该项目可以Star或者提供PR，如果构成侵权将在24小时内删除
 - [爱发电](https://afdian.net/a/agnes_digital)
 

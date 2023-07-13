@@ -3,6 +3,8 @@ from PIL import ImageFont
 from typing import Dict, List
 from pathlib import Path
 
+from nonebot.log import logger
+
 
 # 插件资源目录
 module_path = Path("data/pjsk")
@@ -29,21 +31,25 @@ config_color: Dict[str, List[str]] = {
 }
 
 # 资源模板, key为文件夹名，value为文件夹下的图片，都是相对路径Path对象
-template: Dict[Path, List[Path]] = {
-    role: [i for i in role.iterdir() if i.suffix == ".png"]
-    for role in [i for i in background_path.iterdir() if i.is_dir()]
-}
-
+try:
+    template: Dict[Path, List[Path]] = {
+        role: [i for i in role.iterdir() if i.suffix == ".png"]
+        for role in [i for i in background_path.iterdir() if i.is_dir()]
+    }
+except FileNotFoundError:
+    logger.warning("未下载素材")
+    template =None
 stroke_color = "white"
 stroke_width = 7
 default_font_size = 50
 # rotation_angle = 10
 
-
-font_style: ImageFont.FreeTypeFont = ImageFont.truetype(
-    str(font_file), size=default_font_size, encoding="utf-8"
-)
-
+try:
+    font_style: ImageFont.FreeTypeFont = ImageFont.truetype(
+        str(font_file), size=default_font_size, encoding="utf-8"
+    )
+except OSError:
+    font_style = None
 
 gh_proxy = "https://ghproxy.com/https://github.com/Agnes4m/nonebot_plugin_pjsk"
 download_url = f"{gh_proxy}/releases/download/v0.0.4/resource.zip"

@@ -38,7 +38,7 @@ async def make_ramdom(text: str) -> bytes:
     draw = ImageDraw.Draw(text_image)
 
     if len(text_list) == 1:
-        text_config = await text_draw(text, image.size, draw, role)
+        text_config:TextConfig = await text_draw(text, image.size, draw, role)
         text_position = text_config.font_start
         draw.text(
             text_position,
@@ -56,9 +56,9 @@ async def make_ramdom(text: str) -> bytes:
 
     elif len(text_list) >= 2:
         for i, one_text in enumerate(text_list, start=0):
-            text_config = await text_draw(one_text, image.size, draw, role)
+            text_config:TextConfig = await text_draw(one_text, image.size, draw, role)
             text_position = text_config.font_start
-            text_position[-1] = text_position[-1] + (i * text_config.font_size)
+            text_position = (text_position[0],(text_position[-1] + (i * text_config.font_size)))
             draw.text(
                 text_position,
                 text_config.text,
