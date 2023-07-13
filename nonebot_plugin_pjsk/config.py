@@ -12,6 +12,8 @@ background_path: Path = module_path / "resource"
 
 # 字体文件
 font_file: Path = module_path / "resource/ShangShouFangTangTi.ttf"
+if not font_file.is_file:
+    font_file = "ShangShouFangTangTi.ttf"
 
 # 颜色文件
 config_color: Dict[str, List[str]] = {
@@ -44,4 +46,4 @@ font_style: ImageFont.FreeTypeFont = ImageFont.truetype(
 
 
 gh_proxy = "https://ghproxy.com/https://github.com/Agnes4m/nonebot_plugin_pjsk"
-download_url = f"{gh_proxy}/releases/download/res/img.zip"
+download_url = f"{gh_proxy}/releases/download/v0.0.4/resource.zip"

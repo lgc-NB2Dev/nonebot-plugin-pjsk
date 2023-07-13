@@ -28,11 +28,12 @@ __✨PJSK表情包制作✨__
 
 ## 效果
 
-<img src="https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/test.png" width="512" height="512"  alt="pjsk_test">
+<img src="https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/test.png" width="400" height="400"  alt="pjsk_test">
 
 ## 资源包
 
-在release下载，并放入data/pjsk中
+- 启动的时候自动检测并下载
+- （或）在release下载，并放入机器人目录data/pjsk中
 
 ## 指令
 

@@ -1,7 +1,7 @@
 import random
 from io import BytesIO
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple
 
 from PIL import Image, ImageDraw, ImageFont
 from pydantic import BaseModel
@@ -142,7 +142,7 @@ def color_check(name: str) -> str:
     )
 
 
-def load_type(font: str, font_size: int) -> Optional[ImageFont.FreeTypeFont]:
+async def load_type(font: str, font_size: int):
     """加载字体"""
     try:
         font_style = ImageFont.truetype(font, font_size)
