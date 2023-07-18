@@ -1,7 +1,7 @@
 import random
 from io import BytesIO
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional
 
 from PIL import Image, ImageDraw, ImageFont
 from pydantic import BaseModel
@@ -28,7 +28,7 @@ class TextConfig(BaseModel):
     font_size: int
 
 
-async def make_ramdom(text: str) -> bytes:
+async def make_ramdom(text: str):
     """生成图片"""
     text_list = text.split(" ")
     role: Path = random.choice(list(template.keys()))
@@ -36,9 +36,9 @@ async def make_ramdom(text: str) -> bytes:
     image: Image.Image = Image.open(random_img)
     text_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(text_image)
-
+    text_config: Optional[TextConfig] = None
     if len(text_list) == 1:
-        text_config:TextConfig = await text_draw(text, image.size, draw, role)
+        text_config = await text_draw(text, image.size, draw, role)
         text_position = text_config.font_start
         draw.text(
             text_position,
@@ -56,9 +56,12 @@ async def make_ramdom(text: str) -> bytes:
 
     elif len(text_list) >= 2:
         for i, one_text in enumerate(text_list, start=0):
-            text_config:TextConfig = await text_draw(one_text, image.size, draw, role)
+            text_config = await text_draw(one_text, image.size, draw, role)
             text_position = text_config.font_start
-            text_position = (text_position[0],(text_position[-1] + (i * text_config.font_size)))
+            text_position = (
+                text_position[0],
+                (text_position[-1] + (i * text_config.font_size)),
+            )
             draw.text(
                 text_position,
                 text_config.text,
@@ -72,23 +75,38 @@ async def make_ramdom(text: str) -> bytes:
                 font=font_style,
                 fill=text_config.text_color,
             )
-
     else:
-        ...
+        return
 
+    if not text_config:
+        return
     # print(text_config.font_start)
 
     # 旋转
+    if text_config.rotation_angle:
+        text_bbox = draw.textbbox((0, 0), text_config.text, font_style)
+        center = (
+            (text_bbox[0] + text_bbox[2]) * 2,
+            (text_bbox[1] + text_bbox[3]) * 2,
+        )
+        print(center)
+        text_image = text_image.rotate(
+            text_config.rotation_angle,
+            expand=True,
+            center=center,
+            resample=Image.BICUBIC,
+        )
+
     # if text_config.rotation_angle:
     #     text_bbox = draw.textbbox((0, 0), text_config.text, font_style)
     #     center = (
     #         (text_bbox[0] + text_bbox[2]) // 2,
     #         (text_bbox[1] + text_bbox[3]) // 2,
     #     )
-    #     print(center)
-    #     text_image = text_image.rotate(
-    #         text_config.rotation_angle, expand=True, center=center
-    #     )
+    #     text_image = text_image.resize((text_image.width * 2, text_image.height * 2), Image.ANTIALIAS)
+    #     text_image = text_image.filter(ImageFilter.SMOOTH)
+    #     text_image = text_image.rotate(text_config.rotation_angle, expand=True,center=center, resample=Image.BICUBIC)
+    #     text_image = text_image.resize((text_image.width // 2, text_image.height // 2), Image.ANTIALIAS)
 
     image.paste(text_image, (0, 0), mask=text_image)
     bytes_data = BytesIO()

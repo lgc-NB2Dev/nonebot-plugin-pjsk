@@ -11,7 +11,7 @@ from .utils import check_res
 
 driver = get_driver()
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __plugin_meta__ = PluginMetadata(
     name="pjsk表情",
     description="pjsk表情包生成,适配nonebot2的插件",
@@ -31,7 +31,9 @@ pjsk = on_command("pjsk", aliases={"啤酒烧烤"}, priority=10)
 @pjsk.handle()
 async def _(matcher: Matcher, arg: Message = CommandArg()) -> None:
     if text := arg.extract_plain_text():
-        await matcher.send(MessageSegment.image(await make_ramdom(text)))
+        img = await make_ramdom(text)
+        if img:
+            await matcher.send(MessageSegment.image(img))
 
 
 @driver.on_startup

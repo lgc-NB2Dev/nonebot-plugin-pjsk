@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot_plugin_pjsk"
-version = "0.1.0"
+version = "0.1.1"
 description = "PJSK表情包for Nonebot2"
 authors = ["Agnes_Digital <Z735803792@163.com>"]
 license = "MIT"
