@@ -1,15 +1,14 @@
 import math
 from asyncio import Semaphore
 from enum import Enum, auto
-from typing import Any, Awaitable, Literal, TypeVar, overload
+from typing import Any, Iterable, List, Literal, Optional, Type, TypeVar, overload
 
 from httpx import AsyncClient
-from typing_extensions import ParamSpec
 
 from .config import config
 
-P = ParamSpec("P")
-TAwaitable = TypeVar("TAwaitable", bound=Awaitable)
+T = TypeVar("T")
+TN = TypeVar("TN", int, float)
 
 
 class ResponseType(Enum):
@@ -75,3 +74,35 @@ def with_semaphore(semaphore: Semaphore):
 
 def rad2deg(rad: float) -> float:
     return rad * 180 / math.pi
+
+
+def split_list(li: Iterable[T], length: int) -> List[List[T]]:
+    latest = []
+    tmp = []
+    for n, i in enumerate(li):
+        tmp.append(i)
+        if (n + 1) % length == 0:
+            latest.append(tmp)
+            tmp = []
+    if tmp:
+        latest.append(tmp)
+    return latest
+
+
+class ResolveValueError(ValueError):
+    pass
+
+
+def resolve_value(
+    value: Optional[str],
+    default: TN,
+    expected_type: Type[TN] = int,
+) -> TN:
+    if not value:
+        return default
+    try:
+        if value.startswith("^"):
+            return default + expected_type(value[1:])
+        return expected_type(value)
+    except Exception as e:
+        raise ResolveValueError from e
