@@ -17,11 +17,15 @@ from PIL import Image
 from pil_utils import BuildImage
 from pil_utils.types import ColorType
 
-from .resource import FONT_PATHS, LOADED_STICKER_INFO, RESOURCE_FOLDER, StickerInfo
+from .resource import (
+    FONT_PATHS,
+    LOADED_STICKER_INFO,
+    RESOURCE_FOLDER,
+    StickerInfo,
+)
 from .utils import split_list
 
 FONT: Optional[Font] = None
-
 
 DEFAULT_FONT_WEIGHT = 700
 DEFAULT_STROKE_WIDTH = 9

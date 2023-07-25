@@ -1,4 +1,5 @@
 import asyncio
+import shutil
 from pathlib import Path
 from typing import Coroutine, List
 
@@ -14,6 +15,11 @@ DATA_FOLDER = Path.cwd() / "data" / "pjsk"
 FONT_FOLDER = DATA_FOLDER / "fonts"
 RESOURCE_FOLDER = DATA_FOLDER / "resource"
 STICKER_INFO_CACHE = DATA_FOLDER / "characters.json"
+
+CACHE_FOLDER = DATA_FOLDER / "cache"
+if CACHE_FOLDER.exists():
+    shutil.rmtree(CACHE_FOLDER)
+CACHE_FOLDER.mkdir(parents=True)
 
 FONT_PATHS = [
     FONT_FOLDER / "YurukaStd.ttf",
