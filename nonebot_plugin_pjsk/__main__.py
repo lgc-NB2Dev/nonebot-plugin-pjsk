@@ -49,9 +49,10 @@ async def _(matcher: Matcher, arg: Message = CommandArg()):
 
 cmd_generate_parser = ArgumentParser(
     "pjsk",
-    description="Project Sekai 表情生成\nTip：大部分有默认值的数值参数都可以用 `^` 开头指定相对于默认值的偏移量",
+    description="Project Sekai 表情生成",
+    epilog="Tip：大部分有默认值的数值参数都可以用 `^` 开头指定相对于默认值的偏移量",
 )
-cmd_generate_parser.add_argument("text", help='要往表情上添加的文字，为空时 ("") 则使用默认值')
+cmd_generate_parser.add_argument("text", nargs="*", help="要往表情上添加的文字，为空时使用默认值")
 cmd_generate_parser.add_argument(
     "-i",
     "--id",
@@ -98,11 +99,12 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
     if not selected_sticker:
         await matcher.finish("没有找到对应 ID 的表情")
 
+    texts: Optional[List[str]] = args.text
     default_text = selected_sticker.default_text
     try:
         image = await draw_sticker(
             selected_sticker,
-            text=args.text or default_text.text,
+            text=" ".join(texts) if texts else default_text.text,
             x=resolve_value(args.x, default_text.x),
             y=resolve_value(args.y, default_text.y),
             rotate=resolve_value(args.rotate, default_text.r),
