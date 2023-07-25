@@ -1,56 +1,143 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_l4d2_server/main/image/logo.png" width="180" height="180"  alt="AgnesDigitalLogo">
-  <br>
-  <p><img src="https://s2.loli.net/2022/06/16/xsVUGRrkbn1ljTD.png" width="240" alt="NoneBotPluginText"></p>
-</div>
+<!-- markdownlint-disable MD031 MD033 MD036 MD041 -->
 
 <div align="center">
 
-# nonebot_plugin_pjsk
-
-__✨PJSK表情包制作✨__
-
-<a href="https://github.com/Agnes4m/nonebot_plugin_pjsk/stargazers">
-        <img alt="GitHub stars" src="https://img.shields.io/github/stars/Agnes4m/nonebot_plugin_pjsk" alt="stars">
+<a href="https://v2.nonebot.dev/store">
+  <img src="https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_l4d2_server/main/image/logo.png" width="180" height="180" alt="NoneBotPluginLogo">
 </a>
-<a href="https://github.com/Agnes4m/nonebot_plugin_pjsk/issues">
-        <img alt="GitHub issues" src="https://img.shields.io/github/issues/Agnes4m/nonebot_plugin_pjsk" alt="issues">
+
+<p>
+  <img src="https://raw.githubusercontent.com/A-kirami/nonebot-plugin-template/resources/NoneBotPlugin.svg" width="240" alt="NoneBotPluginText">
+</p>
+
+# NoneBot-Plugin-PJSK
+
+_✨ Project Sekai 表情包制作 ✨_
+
+<img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="python">
+<a href="https://pdm.fming.dev">
+  <img src="https://img.shields.io/badge/pdm-managed-blueviolet" alt="pdm-managed">
 </a>
 <a href="https://jq.qq.com/?_wv=1027&k=l82tMuPG">
-        <img src="https://img.shields.io/badge/QQ%E7%BE%A4-424506063-orange?style=flat-square" alt="QQ Chat Group">
+  <img src="https://img.shields.io/badge/QQ%E7%BE%A4-424506063-orange" alt="QQ Chat Group">
 </a>
-<a href="https://pypi.python.org/pypi/nonebot_plugin_pjsk">
-        <img src="https://img.shields.io/pypi/v/nonebot_plugin_pjsk.svg" alt="pypi">
+
+<br />
+
+<a href="./LICENSE">
+  <img src="https://img.shields.io/github/license/Agnes4m/nonebot_plugin_pjsk.svg" alt="license">
 </a>
-    <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="python">
-    <img src="https://img.shields.io/badge/nonebot-2.0.0-red.svg" alt="NoneBot">
+<a href="https://pypi.python.org/pypi/nonebot-plugin-pjsk">
+  <img src="https://img.shields.io/pypi/v/nonebot-plugin-pjsk.svg" alt="pypi">
+</a>
+<a href="https://pypi.python.org/pypi/nonebot-plugin-pjsk">
+  <img src="https://img.shields.io/pypi/dm/nonebot-plugin-pjsk" alt="pypi download">
+</a>
+
 </div>
 
-## 指令
+## 📖 介绍
 
-- pjsk 【text】
+这里是插件的详细介绍部分
 
-## 示例图
+## 💿 安装
 
-<img src="https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/test.png" width="400" height="400"  alt="pjsk_test">
+以下提到的方法 任选**其一** 即可
 
-## 安装
+<details open>
+<summary>[推荐] 使用 nb-cli 安装</summary>
+在 nonebot2 项目的根目录下打开命令行, 输入以下指令即可安装
 
-以下方法任意选其一
+```bash
+nb plugin install nonebot-plugin-pjsk
+```
 
-        pip install nonebot_plugin_pjsk
-        nb plugin install nonebot_plugin_pjsk
+</details>
 
-## 资源包
+<details>
+<summary>使用包管理器安装</summary>
+在 nonebot2 项目的插件目录下, 打开命令行, 根据你使用的包管理器, 输入相应的安装命令
 
-- 启动的时候自动检测并下载
-- （或）在release下载，并放入机器人目录data/pjsk中
-- __启动自动下载需要重启再加载一次__
-- 读取资源的目录应该为：`data/pjsk/resource/{文件夹}/{图片}`
+<details>
+<summary>pip</summary>
 
-## 🙈 其他
+```bash
+pip install nonebot-plugin-pjsk
+```
 
-- 由于本人没玩过啤酒烧烤，可能出现一些小问题，可以提iss或者[加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈~~或者单纯进来玩~~
-- 本项目仅供学习使用，图片资源来自于游戏解包，请勿用于商业用途，喜欢该项目可以Star或者提供PR，如果构成侵权将在24小时内删除
+</details>
+<details>
+<summary>pdm</summary>
+
+```bash
+pdm add nonebot-plugin-pjsk
+```
+
+</details>
+<details>
+<summary>poetry</summary>
+
+```bash
+poetry add nonebot-plugin-pjsk
+```
+
+</details>
+<details>
+<summary>conda</summary>
+
+```bash
+conda install nonebot-plugin-pjsk
+```
+
+</details>
+
+打开 nonebot2 项目根目录下的 `pyproject.toml` 文件, 在 `[tool.nonebot]` 部分的 `plugins` 项里追加写入
+
+```toml
+[tool.nonebot]
+plugins = [
+    # ...
+    "nonebot_plugin_pjsk"
+]
+```
+
+</details>
+
+## ⚙️ 配置
+
+插件有配置项，但是一般情况下无需更改，请自行查看 [config.py](./nonebot_plugin_pjsk/config.py) 文件
+
+## 🎉 使用
+
+使用指令 `pjsk -h` 查看插件帮助
+
+### 效果图
+
+<details>
+<summary>点击展开</summary>
+
+![example](./readme/example.png)
+
+</details>
+
+## 🙈 碎碎念
+
+- ~~由于本人没玩过啤酒烧烤，~~ 可能出现一些小问题，可以提 issue 或者 [加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈 ~~或者单纯进来玩~~
+- 本项目仅供学习使用，请勿用于商业用途，喜欢该项目可以 Star 或者提供 PR，如果构成侵权将在 24 小时内删除
 - [爱发电](https://afdian.net/a/agnes_digital)
 
+## 💡 鸣谢
+
+### [TheOriginalAyaka/sekai-stickers](https://github.com/TheOriginalAyaka/sekai-stickers)
+
+- 原项目 & 素材来源
+
+## 💰 赞助
+
+感谢大家的赞助！你们的赞助将是我继续创作的动力！
+
+- [爱发电](https://afdian.net/a/agnes_digital)
+
+## 📝 更新日志
+
+芝士刚刚发布的插件，还没有更新日志的说 qwq~

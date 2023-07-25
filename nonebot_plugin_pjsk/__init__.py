@@ -1,43 +1,28 @@
-from nonebot import on_command
-from nonebot import get_driver
-from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot.matcher import Matcher
-from nonebot.params import CommandArg
-from nonebot.log import logger
+from nonebot import require
 from nonebot.plugin import PluginMetadata
 
-from .draw import make_ramdom
-from .utils import check_res
+require("nonebot_plugin_saa")
 
-driver = get_driver()
+from . import __main__ as __main__  # noqa: E402
+from .config import ConfigModel  # noqa: E402
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 __plugin_meta__ = PluginMetadata(
-    name="pjsk表情",
-    description="pjsk表情包生成,适配nonebot2的插件",
-    usage="pjsk 【text】",
+    name="Sekai Stickers",
+    description="基于 NoneBot2 的 Project Sekai 表情包制作插件",
+    usage="使用指令 `pjsk -h` 获取指令帮助",
     type="application",
     homepage="https://github.com/Agnes4m/nonebot_plugin_pjsk",
-    supported_adapters={"~onebot.v11"},
+    config=ConfigModel,
+    supported_adapters={
+        "~onebot.v11",
+        "~onebot.v12",
+        "~kaiheila",
+        "~qqguild",
+        "~telegram",
+    },
     extra={
         "version": __version__,
         "author": "Agnes4m <Z735803792@163.com>",
     },
 )
-
-pjsk = on_command("pjsk", aliases={"啤酒烧烤"}, priority=10)
-
-
-@pjsk.handle()
-async def _(matcher: Matcher, arg: Message = CommandArg()) -> None:
-    if text := arg.extract_plain_text():
-        img = await make_ramdom(text)
-        if img:
-            await matcher.send(MessageSegment.image(img))
-
-
-@driver.on_startup
-async def _():
-    logger.info("检查pjsk资源")
-    msg = await check_res()
-    logger.success(msg)

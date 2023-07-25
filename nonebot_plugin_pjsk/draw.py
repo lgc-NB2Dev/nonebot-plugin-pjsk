@@ -1,169 +1,238 @@
-import random
+import asyncio
 from io import BytesIO
-from pathlib import Path
-from typing import Tuple, Optional
+from typing import Any, Awaitable, Callable, Coroutine, Dict, List, Optional, overload
 
-from PIL import Image, ImageDraw, ImageFont
-from pydantic import BaseModel
-
-from .config import (
-    template,
-    stroke_color,
-    default_font_size,
-    font_file,
-    config_color,
-    stroke_width,
+import anyio
+from imagetext_py import (
+    Canvas,
+    Color,
+    Font,
+    Paint,
+    TextAlign,
+    draw_text_multiline,
+    text_size_multiline,
 )
+from numpy import rad2deg
+from PIL import Image
+from pil_utils import BuildImage
+from pil_utils.types import ColorType
+from typing_extensions import ParamSpec
+
+from .resource import (
+    CACHE_FOLDER,
+    FONT_PATHS,
+    LOADED_STICKER_INFO,
+    RESOURCE_FOLDER,
+    StickerInfo,
+)
+from .utils import split_list
+
+P = ParamSpec("P")
 
 
-class TextConfig(BaseModel):
-    """图片配置"""
+FONT: Optional[Font] = None
 
-    image_size: Tuple[int, int]
-    text: str
-    text_color: str = "grey"
-    font_start: Tuple[int, int] = (0, 0)
-    stroke_width: int = 7
-    rotation_angle: int = 10
-    font_size: int
+DEFAULT_FONT_WEIGHT = 700
+DEFAULT_STROKE_WIDTH = 9
+DEFAULT_LINE_SPACING = 1.3
 
 
-async def make_ramdom(text: str):
-    """生成图片"""
-    text_list = text.split(" ")
-    role: Path = random.choice(list(template.keys()))
-    random_img: Path = random.choice(template[role])
-    image: Image.Image = Image.open(random_img)
-    text_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(text_image)
-    text_config: Optional[TextConfig] = None
-    if len(text_list) == 1:
-        text_config = await text_draw(text, image.size, draw, role)
-        text_position = text_config.font_start
-        draw.text(
-            text_position,
-            text_config.text,
-            font=font_style,
-            fill=stroke_color,
-            stroke_width=text_config.stroke_width,
-        )
-        draw.text(
-            xy=text_position,
-            text=text_config.text,
-            font=font_style,
-            fill=text_config.text_color,
-        )
-
-    elif len(text_list) >= 2:
-        for i, one_text in enumerate(text_list, start=0):
-            text_config = await text_draw(one_text, image.size, draw, role)
-            text_position = text_config.font_start
-            text_position = (
-                text_position[0],
-                (text_position[-1] + (i * text_config.font_size)),
-            )
-            draw.text(
-                text_position,
-                text_config.text,
-                font=font_style,
-                fill=stroke_color,
-                stroke_width=text_config.stroke_width,
-            )
-            draw.text(
-                xy=text_position,
-                text=text_config.text,
-                font=font_style,
-                fill=text_config.text_color,
-            )
-    else:
-        return
-
-    if not text_config:
-        return
-    # print(text_config.font_start)
-
-    # 旋转
-    if text_config.rotation_angle:
-        text_bbox = draw.textbbox((0, 0), text_config.text, font_style)
-        center = (
-            (text_bbox[0] + text_bbox[2]) * 2,
-            (text_bbox[1] + text_bbox[3]) * 2,
-        )
-        print(center)
-        text_image = text_image.rotate(
-            text_config.rotation_angle,
-            expand=True,
-            center=center,
-            resample=Image.BICUBIC,
-        )
-
-    # if text_config.rotation_angle:
-    #     text_bbox = draw.textbbox((0, 0), text_config.text, font_style)
-    #     center = (
-    #         (text_bbox[0] + text_bbox[2]) // 2,
-    #         (text_bbox[1] + text_bbox[3]) // 2,
-    #     )
-    #     text_image = text_image.resize((text_image.width * 2, text_image.height * 2), Image.ANTIALIAS)
-    #     text_image = text_image.filter(ImageFilter.SMOOTH)
-    #     text_image = text_image.rotate(text_config.rotation_angle, expand=True,center=center, resample=Image.BICUBIC)
-    #     text_image = text_image.resize((text_image.width // 2, text_image.height // 2), Image.ANTIALIAS)
-
-    image.paste(text_image, (0, 0), mask=text_image)
-    bytes_data = BytesIO()
-    image.save(bytes_data, format="png")
-    return bytes_data.getvalue()
+def ensure_font() -> Font:
+    global FONT
+    if not FONT:
+        FONT = Font(str(FONT_PATHS[0]), [str(x) for x in FONT_PATHS[1:]])
+    return FONT
 
 
-async def text_draw(
+def hex_to_color(hex_color: str) -> Color:
+    if hex_color.startswith("#"):
+        hex_color = hex_color[1:]
+    return Color.from_hex(hex_color)
+
+
+def render_text(
     text: str,
-    size: Tuple[int, int],
-    draw: ImageDraw.ImageDraw,
-    file_path: Path,
-) -> TextConfig:
-    """
-    - text_list:文字
-    - size:图片大小
-    """
-    global font_style
-    # 根据字数调整字体大小
-    if 1 <= len(text) <= 5:
-        # 字数在2-5之间，使用默认字体大小
-        font_size = default_font_size
-        rotation_angle = 10
-    else:
-        # 字数超过5，需要适当减小字体大小
-        font_size = int(default_font_size * (5 / len(text)))
-        rotation_angle = 0
+    color: str,
+    font_size: int,
+    font_weight: int,
+    stoke_width: int,
+    line_spacing: float,
+) -> Image.Image:
+    font = ensure_font()
 
-    # 重新加载字体
-    font_style = await load_type(str(font_file), font_size)
-    # 计算文字位置
-    _, _, text_width, text_height = draw.textbbox((0, 0), text, font_style)
-    text_x: int = (size[0] - text_width) // 2
-    text_y: int = (size[1] - text_height) // 10
+    text_lines = text.splitlines()
+    padding = stoke_width
 
-    return TextConfig(
-        image_size=size,
-        text=text,
-        font_start=(text_x, text_y),
-        stroke_width=stroke_width,
-        text_color=color_check(file_path.name),
-        rotation_angle=rotation_angle,
-        font_size=50,
+    actual_size = text_size_multiline(text_lines, font_size, font, line_spacing)
+    size = (
+        actual_size[0] + padding * 2,
+        actual_size[1] + padding * 2 + font_size // 2,  # 更多纵向 padding 防止文字被裁切
+    )
+
+    canvas = Canvas(*size, Color(255, 255, 255, 0))
+    draw_text_multiline(
+        canvas,
+        text_lines,  # type: ignore 这里是源代码有问题
+        size[0] // 2,
+        size[1] // 2,
+        0.5,
+        0.5,
+        font_weight,
+        font_size,
+        font,
+        Paint(hex_to_color(color)),
+        line_spacing,
+        TextAlign.Center,
+        stoke_width,  # type: ignore same
+        Paint(Color(255, 255, 255)),
+    )
+
+    return canvas.to_image().convert("RGBA")
+
+
+def paste_text_on_image(
+    image: Image.Image,
+    text: Image.Image,
+    x: int,
+    y: int,
+    rotate: int,
+) -> Image.Image:
+    target_size = (296, 256)
+    image = BuildImage(image).resize(target_size, keep_ratio=True, inside=True).image
+
+    text_bg = Image.new("RGBA", target_size, (255, 255, 255, 0))
+    text = text.rotate(-rad2deg(rotate / 10), resample=Image.BICUBIC, expand=True)
+    text_bg.paste(text, (x - text.size[0] // 2, y - text.size[1] // 2), text)
+
+    return Image.alpha_composite(image, text_bg)
+
+
+def i2b(image: Image.Image, image_format: str = "PNG") -> bytes:
+    image_format = image_format.upper()
+    if image_format == "JPEG":
+        image = image.convert("RGB")
+    b = BytesIO()
+    image.save(b, image_format)
+    return b.getvalue()
+
+
+async def draw_sticker(
+    info: StickerInfo,
+    text: Optional[str] = None,
+    x: Optional[int] = None,
+    y: Optional[int] = None,
+    rotate: Optional[int] = None,
+    font_size: Optional[int] = None,
+    stroke_width: Optional[int] = None,
+    line_spacing: Optional[float] = None,
+    font_weight: Optional[int] = None,
+) -> Image.Image:
+    sticker_img = await anyio.Path(RESOURCE_FOLDER / info.img).read_bytes()
+    text_img = render_text(
+        text or info.default_text.text,
+        info.color,
+        font_size or info.default_text.s,
+        font_weight or DEFAULT_FONT_WEIGHT,
+        stroke_width or DEFAULT_STROKE_WIDTH,
+        line_spacing or DEFAULT_LINE_SPACING,
+    )
+    return paste_text_on_image(
+        Image.open(BytesIO(sticker_img)).convert("RGBA"),
+        text_img,
+        x or info.default_text.x,
+        y or info.default_text.y,
+        rotate or info.default_text.r,
     )
 
 
-def color_check(name: str) -> str:
-    return next(
-        (color for color, name_list in config_color.items() if name in name_list),
-        "grey",
+def render_summary_picture(
+    image_list: List[Image.Image],
+    padding: int = 15,
+    line_max: int = 5,
+    background: Optional[ColorType] = None,
+) -> Image.Image:
+    lines = split_list(image_list, line_max)
+    width = max(
+        [sum([x.size[0] for x in line]) + padding * (len(line) + 1) for line in lines],
     )
+    height = sum([max([x.size[1] for x in line]) for line in lines]) + (
+        padding * (len(lines) + 1)
+    )
+    bg = Image.new("RGBA", (width, height), background or (0, 0, 0))
+
+    y_offset = padding
+    for line in lines:
+        x_offset = padding
+        for item in line:
+            bg.paste(item, (x_offset, y_offset), item)
+            x_offset += item.size[0] + padding
+        y_offset += max([x.size[1] for x in line]) + padding
+
+    return bg
 
 
-async def load_type(font: str, font_size: int):
-    """加载字体"""
-    try:
-        font_style = ImageFont.truetype(font, font_size)
-    except ImageFont:
+async def render_all_characters() -> Image.Image:
+    characters: Dict[str, StickerInfo] = {}
+    for info in LOADED_STICKER_INFO:
+        if info.character not in characters:
+            characters[info.character] = info
+
+    tasks: List[Coroutine[Any, Any, Image.Image]] = [
+        draw_sticker(info, info.character.capitalize()) for info in characters.values()
+    ]
+    images: List[Image.Image] = await asyncio.gather(*tasks)
+    return render_summary_picture(images)
+
+
+async def render_character_stickers(character: str) -> Optional[Image.Image]:
+    character = character.lower()
+
+    tasks: List[Coroutine[Any, Any, Image.Image]] = [
+        draw_sticker(info, info.sticker_id)
+        for info in LOADED_STICKER_INFO
+        if info.character.lower() == character
+    ]
+    if not tasks:
         return None
-    return font_style
+
+    images: List[Image.Image] = await asyncio.gather(*tasks)
+    return render_summary_picture(images)
+
+
+@overload
+def use_image_cache(
+    func: Callable[P, Awaitable[Image.Image]],
+    filename: str,
+    image_format: str = "JPEG",
+) -> Callable[P, Awaitable[bytes]]:
+    ...
+
+
+@overload
+def use_image_cache(
+    func: Callable[P, Awaitable[Optional[Image.Image]]],
+    filename: str,
+    image_format: str = "JPEG",
+) -> Callable[P, Awaitable[Optional[bytes]]]:
+    ...
+
+
+def use_image_cache(
+    func: Callable[P, Awaitable[Optional[Image.Image]]],
+    filename: str,
+    image_format: str = "JPEG",
+) -> Callable[P, Awaitable[Optional[bytes]]]:
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Optional[bytes]:
+        path = anyio.Path(CACHE_FOLDER) / f"{filename}.{image_format.lower()}"
+        if await path.exists():
+            return await path.read_bytes()
+
+        raw_image = await func(*args, **kwargs)
+        if not raw_image:
+            return None
+
+        image = i2b(raw_image, image_format)
+        await path.write_bytes(image)
+        return image
+
+    return wrapper

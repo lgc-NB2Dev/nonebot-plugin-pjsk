@@ -1,33 +1,117 @@
-import aiohttp
-import shutil
-import io
-import zipfile
+import math
+from asyncio import Semaphore
+from enum import Enum, auto
+from typing import (
+    Any,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Type,
+    TypeVar,
+    overload,
+)
 
-from nonebot.log import logger
-from .config import module_path, background_path, download_url
+from httpx import AsyncClient
+
+from .config import config
+
+T = TypeVar("T")
+TN = TypeVar("TN", int, float)
 
 
-
-async def get_url(url):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as res:
-            if res.status == 200:
-                return await res.read()
-            else:
-                return None
+class ResponseType(Enum):
+    JSON = auto()
+    TEXT = auto()
+    BYTES = auto()
 
 
-async def check_res():
-    if not background_path.exists():
-        background_path.mkdir(parents=True,exist_ok=True)
-        logger.info("未检测到资源，开始下载资源")
-        zip_bytes = await get_url(download_url)
-        if not zip_bytes:
-            return "链接错误捏"
-        memory_file = io.BytesIO(zip_bytes)
+@overload
+async def async_request(
+    url: str,
+    response_type: Literal[ResponseType.JSON],
+    prefix: str = config.pjsk_assets_prefix,
+) -> Any:
+    ...
 
-        with zipfile.ZipFile(memory_file, mode="r") as z:
-            z.extractall(background_path)
-        return "初始化完成，成功下载资源"
-    else:
-        return "检测到已下载资源，跳过下载"
+
+@overload
+async def async_request(
+    url: str,
+    response_type: Literal[ResponseType.TEXT],
+    prefix: str = config.pjsk_assets_prefix,
+) -> str:
+    ...
+
+
+@overload
+async def async_request(
+    url: str,
+    response_type: Literal[ResponseType.BYTES] = ResponseType.BYTES,
+    prefix: str = config.pjsk_assets_prefix,
+) -> bytes:
+    ...
+
+
+async def async_request(
+    url: str,
+    response_type: ResponseType = ResponseType.BYTES,
+    prefix: str = config.pjsk_assets_prefix,
+) -> Any:
+    if not url.startswith(("http://", "https://")):
+        url = f"{prefix}{url}"
+    async with AsyncClient() as client:
+        response = await client.get(url)
+        response.raise_for_status()
+        if response_type == ResponseType.JSON:
+            return response.json()
+        if response_type == ResponseType.TEXT:
+            return response.text
+        return response.content
+
+
+def with_semaphore(semaphore: Semaphore):
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            async with semaphore:
+                return await func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def rad2deg(rad: float) -> float:
+    return rad * 180 / math.pi
+
+
+def split_list(li: Iterable[T], length: int) -> List[List[T]]:
+    latest = []
+    tmp = []
+    for n, i in enumerate(li):
+        tmp.append(i)
+        if (n + 1) % length == 0:
+            latest.append(tmp)
+            tmp = []
+    if tmp:
+        latest.append(tmp)
+    return latest
+
+
+class ResolveValueError(ValueError):
+    pass
+
+
+def resolve_value(
+    value: Optional[str],
+    default: TN,
+    expected_type: Type[TN] = int,
+) -> TN:
+    if not value:
+        return default
+    try:
+        if value.startswith("^"):
+            return default + expected_type(value[1:])
+        return expected_type(value)  # type: ignore pylance 抽风
+    except Exception as e:
+        raise ResolveValueError from e
