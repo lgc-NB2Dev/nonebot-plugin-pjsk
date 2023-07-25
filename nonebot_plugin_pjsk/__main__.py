@@ -17,6 +17,7 @@ from .draw import (
     i2b,
     render_all_characters,
     render_character_stickers,
+    use_image_cache,
 )
 from .resource import LOADED_STICKER_INFO
 from .utils import ResolveValueError, resolve_value
@@ -30,9 +31,9 @@ async def _(matcher: Matcher, arg: Message = CommandArg()):
 
     try:
         img = (
-            (await render_all_characters())
-            if not character
-            else (await render_character_stickers(character))
+            (await use_image_cache(render_character_stickers, character)(character))
+            if character
+            else (await use_image_cache(render_all_characters, "all_characters")())
         )
     except Exception:
         logger.exception("Error occurred while rendering all characters")
@@ -41,7 +42,7 @@ async def _(matcher: Matcher, arg: Message = CommandArg()):
     if not img:
         await matcher.finish(f"没有找到角色 {arg}")
 
-    messages: List[MessageSegmentFactory] = [Image(i2b(img, "JPEG"))]
+    messages: List[MessageSegmentFactory] = [Image(img)]
     if not character:
         messages.append(Text("Tip：发送指令 `pjsk列表 <角色名>` 查看角色下所有表情的 ID"))
     await MessageFactory(messages).finish(reply=True)

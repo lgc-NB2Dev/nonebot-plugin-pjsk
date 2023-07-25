@@ -1,6 +1,6 @@
 import asyncio
 from io import BytesIO
-from typing import Any, Coroutine, Dict, List, Optional
+from typing import Any, Awaitable, Callable, Coroutine, Dict, List, Optional, overload
 
 import anyio
 from imagetext_py import (
@@ -16,14 +16,19 @@ from numpy import rad2deg
 from PIL import Image
 from pil_utils import BuildImage
 from pil_utils.types import ColorType
+from typing_extensions import ParamSpec
 
 from .resource import (
+    CACHE_FOLDER,
     FONT_PATHS,
     LOADED_STICKER_INFO,
     RESOURCE_FOLDER,
     StickerInfo,
 )
 from .utils import split_list
+
+P = ParamSpec("P")
+
 
 FONT: Optional[Font] = None
 
@@ -192,3 +197,42 @@ async def render_character_stickers(character: str) -> Optional[Image.Image]:
 
     images: List[Image.Image] = await asyncio.gather(*tasks)
     return render_summary_picture(images)
+
+
+@overload
+def use_image_cache(
+    func: Callable[P, Awaitable[Image.Image]],
+    filename: str,
+    image_format: str = "JPEG",
+) -> Callable[P, Awaitable[bytes]]:
+    ...
+
+
+@overload
+def use_image_cache(
+    func: Callable[P, Awaitable[Optional[Image.Image]]],
+    filename: str,
+    image_format: str = "JPEG",
+) -> Callable[P, Awaitable[Optional[bytes]]]:
+    ...
+
+
+def use_image_cache(
+    func: Callable[P, Awaitable[Optional[Image.Image]]],
+    filename: str,
+    image_format: str = "JPEG",
+) -> Callable[P, Awaitable[Optional[bytes]]]:
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Optional[bytes]:
+        path = anyio.Path(CACHE_FOLDER) / f"{filename}.{image_format.lower()}"
+        if await path.exists():
+            return await path.read_bytes()
+
+        raw_image = await func(*args, **kwargs)
+        if not raw_image:
+            return None
+
+        image = i2b(raw_image, image_format)
+        await path.write_bytes(image)
+        return image
+
+    return wrapper

@@ -1,7 +1,16 @@
 import math
 from asyncio import Semaphore
 from enum import Enum, auto
-from typing import Any, Iterable, List, Literal, Optional, Type, TypeVar, overload
+from typing import (
+    Any,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Type,
+    TypeVar,
+    overload,
+)
 
 from httpx import AsyncClient
 
@@ -103,6 +112,6 @@ def resolve_value(
     try:
         if value.startswith("^"):
             return default + expected_type(value[1:])
-        return expected_type(value)
+        return expected_type(value)  # type: ignore pylance 抽风
     except Exception as e:
         raise ResolveValueError from e
