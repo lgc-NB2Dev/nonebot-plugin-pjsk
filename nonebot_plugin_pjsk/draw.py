@@ -66,7 +66,7 @@ def render_text(
     actual_size = text_size_multiline(text_lines, font_size, font, line_spacing)
     size = (
         actual_size[0] + padding * 2,
-        actual_size[1] + padding * 2 + font_size // 2,  # 更多纵向 padding 防止文字被裁切
+        actual_size[1] + padding * 2 + font_size // 2,  # 更多纵向 padding 防止文字被裁
     )
 
     canvas = Canvas(*size, Color(255, 255, 255, 0))
