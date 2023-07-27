@@ -1,0 +1,38 @@
+default_install_hook_types: [pre-commit, prepare-commit-msg]
+ci:
+  autofix_commit_msg: "🚨 `pre-commit-ci`修复格式错误"
+  skip:
+    - "poetry-lock"
+  autofix_prs: true
+  autoupdate_branch: v4
+  autoupdate_schedule: monthly
+  autoupdate_commit_msg: "⬆️ `pre-commit-ci`自动升级"
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.276
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        stages: [commit]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        stages: [commit]
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        stages: [commit]
+
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.5.1
+    hooks:
+      - id: poetry-check
+      - id: poetry-lock
+      - id: poetry-export
+        args: ["-f", "requirements.txt", "-o", "requirements.txt"]
+        pass_filenames: false
+        verbose: true

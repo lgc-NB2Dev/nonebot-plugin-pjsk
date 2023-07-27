@@ -1,7 +1,7 @@
 import math
-from asyncio import Semaphore
 from enum import Enum, auto
-from typing import Any, Iterable, List, Literal, Optional, Type, TypeVar, overload
+from asyncio import Semaphore
+from typing import Any, List, Type, Literal, TypeVar, Iterable, Optional, overload
 
 from httpx import AsyncClient
 

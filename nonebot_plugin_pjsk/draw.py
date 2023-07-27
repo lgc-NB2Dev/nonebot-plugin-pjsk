@@ -1,31 +1,31 @@
 import asyncio
 from io import BytesIO
-from typing import Any, Awaitable, Callable, Coroutine, Dict, List, Optional, overload
+from typing_extensions import ParamSpec
+from typing import Any, Dict, List, Callable, Optional, Awaitable, Coroutine, overload
 
 import anyio
+from PIL import Image
+from numpy import rad2deg
+from pil_utils import BuildImage
+from pil_utils.types import ColorType
 from imagetext_py import (
-    Canvas,
-    Color,
     Font,
+    Color,
     Paint,
+    Canvas,
     TextAlign,
     draw_text_multiline,
     text_size_multiline,
 )
-from numpy import rad2deg
-from PIL import Image
-from pil_utils import BuildImage
-from pil_utils.types import ColorType
-from typing_extensions import ParamSpec
 
+from .utils import split_list
 from .resource import (
-    CACHE_FOLDER,
     FONT_PATHS,
-    LOADED_STICKER_INFO,
+    CACHE_FOLDER,
     RESOURCE_FOLDER,
+    LOADED_STICKER_INFO,
     StickerInfo,
 )
-from .utils import split_list
 
 P = ParamSpec("P")
 

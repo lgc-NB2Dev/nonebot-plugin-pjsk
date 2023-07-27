@@ -6,9 +6,7 @@ class ConfigModel(BaseModel):
     pjsk_assets_prefix: str = (
         "https://raw.gitmirror.com/TheOriginalAyaka/sekai-stickers/main/"
     )
-    pjsk_repo_prefix: str = (
-        "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/"
-    )
+    pjsk_repo_prefix: str = "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/"
 
     @validator("pjsk_assets_prefix", "pjsk_repo_prefix")
     def check_url(cls, v):  # noqa: N805
