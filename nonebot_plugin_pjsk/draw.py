@@ -1,6 +1,16 @@
 import asyncio
 from io import BytesIO
-from typing import Any, Awaitable, Callable, Coroutine, Dict, List, Optional, overload
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Coroutine,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    overload,
+)
 from typing_extensions import ParamSpec
 
 import anyio
@@ -171,32 +181,18 @@ def render_summary_picture(
     return bg
 
 
-async def render_all_characters() -> Image.Image:
-    characters: Dict[str, StickerInfo] = {}
-    for info in LOADED_STICKER_INFO:
-        if info.character not in characters:
-            characters[info.character] = info
-
-    tasks: List[Coroutine[Any, Any, Image.Image]] = [
-        draw_sticker(info, info.character.capitalize()) for info in characters.values()
-    ]
-    images: List[Image.Image] = await asyncio.gather(*tasks)
-    return render_summary_picture(images)
-
-
-async def render_character_stickers(character: str) -> Optional[Image.Image]:
-    character = character.lower()
-
-    tasks: List[Coroutine[Any, Any, Image.Image]] = [
-        draw_sticker(info, info.sticker_id)
-        for info in LOADED_STICKER_INFO
-        if info.character.lower() == character
-    ]
-    if not tasks:
-        return None
-
-    images: List[Image.Image] = await asyncio.gather(*tasks)
-    return render_summary_picture(images)
+async def render_summary_from_tasks(
+    tasks: Iterable[Awaitable[Image.Image]],
+    padding: int = 15,
+    line_max: int = 5,
+    background: Optional[ColorType] = None,
+) -> Image.Image:
+    return render_summary_picture(
+        await asyncio.gather(*tasks),
+        padding,
+        line_max,
+        background,
+    )
 
 
 @overload
@@ -236,3 +232,31 @@ def use_image_cache(
         return image
 
     return wrapper
+
+
+async def render_all_characters() -> Image.Image:
+    characters: Dict[str, StickerInfo] = {}
+    for info in LOADED_STICKER_INFO:
+        if info.character not in characters:
+            characters[info.character] = info
+    return await render_summary_from_tasks(
+        draw_sticker(info, info.character.capitalize()) for info in characters.values()
+    )
+
+
+async def get_all_characters() -> bytes:
+    return await use_image_cache(render_all_characters, "all_characters")()
+
+
+async def render_character_stickers(character: str) -> Optional[Image.Image]:
+    character = character.lower()
+    tasks: List[Coroutine[Any, Any, Image.Image]] = [
+        draw_sticker(info, info.sticker_id)
+        for info in LOADED_STICKER_INFO
+        if info.character.lower() == character
+    ]
+    return (await render_summary_from_tasks(tasks)) if tasks else None
+
+
+async def get_character_stickers(character: str) -> Optional[bytes]:
+    return await use_image_cache(render_character_stickers, character)(character)

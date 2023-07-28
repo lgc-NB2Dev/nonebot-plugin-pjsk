@@ -105,4 +105,4 @@ def resolve_value(
             return default + expected_type(value[1:])
         return expected_type(value)  # type: ignore pylance 抽风
     except Exception as e:
-        raise ResolveValueError from e
+        raise ResolveValueError(value) from e

@@ -109,12 +109,20 @@ plugins = [
 
 ## 🎉 使用
 
-使用指令 `pjsk -h` 查看插件帮助
+直接使用指令 `pjsk` 进入交互创建模式；  
+使用指令 `pjsk -h` 了解使用 Shell-Like 指令创建表情的帮助
 
 ### 效果图
 
 <details>
-<summary>点击展开</summary>
+<summary>使用交互创建模式</summary>
+
+![example](./readme/example-interact.png)
+
+</details>
+
+<details>
+<summary>使用 Shell-Like 指令</summary>
 
 ![example](./readme/example.png)
 
@@ -140,4 +148,14 @@ plugins = [
 
 ## 📝 更新日志
 
-芝士刚刚发布的插件，还没有更新日志的说 qwq~
+### 0.2.2
+
+- 修改了 0.2.1 版的交互创建模式的触发方式
+
+### 0.2.1
+
+- 更改指令 `pjsk列表` 的交互方式
+
+### 0.2.0
+
+- 重构插件

@@ -1,7 +1,8 @@
 import asyncio
+import random
 import shutil
 from pathlib import Path
-from typing import Coroutine, List
+from typing import Coroutine, List, Optional
 
 import anyio
 from loguru import logger
@@ -49,6 +50,14 @@ class StickerInfo(BaseModel):
 
 
 LOADED_STICKER_INFO: List[StickerInfo] = []
+
+
+def select_or_get_random(sticker_id: Optional[str] = None) -> Optional[StickerInfo]:
+    return (
+        next((x for x in LOADED_STICKER_INFO if sticker_id == x.sticker_id), None)
+        if sticker_id
+        else random.choice(LOADED_STICKER_INFO)
+    )
 
 
 async def check_and_download_font():
