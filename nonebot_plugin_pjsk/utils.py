@@ -1,4 +1,3 @@
-import math
 from asyncio import Semaphore
 from enum import Enum, auto
 from typing import Any, Iterable, List, Literal, Optional, Type, TypeVar, overload
@@ -70,10 +69,6 @@ def with_semaphore(semaphore: Semaphore):
         return wrapper
 
     return decorator
-
-
-def rad2deg(rad: float) -> float:
-    return rad * 180 / math.pi
 
 
 def split_list(li: Iterable[T], length: int) -> List[List[T]]:

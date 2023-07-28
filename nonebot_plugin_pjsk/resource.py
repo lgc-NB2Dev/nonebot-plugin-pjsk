@@ -5,8 +5,7 @@ from pathlib import Path
 from typing import Coroutine, List, Optional, overload
 
 import anyio
-from loguru import logger
-from nonebot import get_driver
+from nonebot import get_driver, logger
 from pydantic import BaseModel, Field, parse_raw_as
 
 from .config import config
