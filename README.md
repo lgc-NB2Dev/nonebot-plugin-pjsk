@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD031 MD033 MD036 MD041 -->
+<!-- markdownlint-disable MD026 MD031 MD033 MD036 MD041 -->
 
 <div align="center">
 
@@ -37,6 +37,8 @@ _✨ Project Sekai 表情包制作 ✨_
 </div>
 
 ## 📖 介绍
+
+### Wonderhoy!
 
 ![Wonderhoy](./readme/wonderhoy.png)
 
@@ -151,6 +153,7 @@ plugins = [
 ### 0.2.2
 
 - 修改了 0.2.1 版的交互创建模式的触发方式
+- 试验性地支持了 Emoji
 
 ### 0.2.1
 
