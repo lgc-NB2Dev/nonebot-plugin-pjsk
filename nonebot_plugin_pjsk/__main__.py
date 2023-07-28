@@ -47,9 +47,9 @@ cmd_generate_parser.add_argument(
     help="文字旋转的角度，单位为 `(ROTATE / 10) 弧度`",
 )
 cmd_generate_parser.add_argument("-s", "--size", help="文字的大小")
+cmd_generate_parser.add_argument("-w", "--weight", help="文本粗细")
 cmd_generate_parser.add_argument("--stroke-width", help="文本描边宽度")
 cmd_generate_parser.add_argument("--line-spacing", help="文本行间距")
-cmd_generate_parser.add_argument("--weight", help="文本粗细")
 
 cmd_generate = on_shell_command(
     "pjsk",
@@ -124,7 +124,7 @@ async def _(matcher: Matcher, state: T_State):
 
     interact = state.get("interact", True)
     tip_text = (
-        "请发送你要生成表情的角色名称，或者直接发送表情 ID\nTip：你可以随时发送 `0` 退出交互模式"
+        "请发送你要生成表情的角色名称，或者直接发送表情 ID，或者发送 `随机` 使用一张随机表情\nTip：你可以随时发送 `0` 退出交互模式"
         if interact
         else "Tip：发送指令 `pjsk列表 <角色名>` 查看角色下所有表情的 ID"
     )
@@ -136,7 +136,7 @@ async def _(matcher: Matcher, state: T_State):
         await matcher.finish("获取角色列表图片出错，请检查后台日志")
 
     factory = MessageFactory([Image(image), Text(tip_text)])
-    await (factory.pause if interact else factory.finish)(reply=True)
+    await (factory.send if interact else factory.finish)(reply=True)
 
 
 # sticker id list
@@ -148,12 +148,16 @@ async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character"
 
     interact = state.get("interact", True)
 
-    # 交互模式，且直接发送了表情 ID
-    if interact and character.isdigit():
-        if not select_or_get_random(character):
-            await matcher.reject("没有找到对应 ID 的表情，请重新输入")
+    # 交互模式
+    if interact:
+        if character == "随机":
+            matcher.set_arg("sticker_id", type(arg_msg)())
 
-        matcher.set_arg("sticker_id", arg_msg)
+        elif character.isdigit():  # 直接发送了表情 ID
+            if not select_or_get_random(character):
+                await matcher.reject("没有找到对应 ID 的表情，请重新输入")
+            matcher.set_arg("sticker_id", arg_msg)
+
         matcher.skip()
 
     try:
@@ -172,7 +176,7 @@ async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character"
         segments.append(Text("请发送你要生成表情的 ID"))
 
     factory = MessageFactory(segments)
-    await (factory.pause if interact else factory.finish)(reply=True)
+    await (factory.send if interact else factory.finish)(reply=True)
 
 
 # below are interact mode handlers
@@ -181,9 +185,9 @@ async def _(matcher: Matcher, arg: str = ArgPlainText("sticker_id")):
     arg = arg.strip()
     await handle_exit(matcher, arg)
 
-    if not select_or_get_random(arg):
+    if not select_or_get_random(arg or None):  # 上面传过来的空消息转 None 获取随机表情
         await matcher.reject("没有找到对应 ID 的表情，请重新输入")
-    await matcher.pause("请发送你想要写在表情上的的文字")
+    await matcher.send("请发送你想要写在表情上的的文字")
 
 
 @cmd_generate.got("text")

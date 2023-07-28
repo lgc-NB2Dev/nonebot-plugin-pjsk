@@ -2,7 +2,7 @@ import asyncio
 import random
 import shutil
 from pathlib import Path
-from typing import Coroutine, List, Optional
+from typing import Coroutine, List, Optional, overload
 
 import anyio
 from loguru import logger
@@ -50,6 +50,16 @@ class StickerInfo(BaseModel):
 
 
 LOADED_STICKER_INFO: List[StickerInfo] = []
+
+
+@overload
+def select_or_get_random(sticker_id: None = None) -> StickerInfo:
+    ...
+
+
+@overload
+def select_or_get_random(sticker_id: str) -> Optional[StickerInfo]:
+    ...
 
 
 def select_or_get_random(sticker_id: Optional[str] = None) -> Optional[StickerInfo]:
