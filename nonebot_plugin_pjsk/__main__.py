@@ -152,13 +152,13 @@ async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character"
     if interact:
         if character == "随机":
             matcher.set_arg("sticker_id", type(arg_msg)())
+            matcher.skip()
 
         elif character.isdigit():  # 直接发送了表情 ID
             if not select_or_get_random(character):
                 await matcher.reject("没有找到对应 ID 的表情，请重新输入")
             matcher.set_arg("sticker_id", arg_msg)
-
-        matcher.skip()
+            matcher.skip()
 
     try:
         image = await get_character_stickers(character)
