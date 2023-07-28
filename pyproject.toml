@@ -48,3 +48,6 @@ skip-string-normalization = true
 
 [tool.ruff]
 extend-select = ["I"]
+
+[tool.ruff.isort]
+extra-standard-library = ["typing_extensions"]

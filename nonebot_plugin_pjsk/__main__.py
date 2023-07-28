@@ -1,27 +1,27 @@
 import random
 from typing import List, Optional
 
-from nonebot.typing import T_State
-from nonebot.matcher import Matcher
+from nonebot import logger, on_command, on_shell_command
 from nonebot.exception import ParserExit
 from nonebot.internal.adapter import Message
-from nonebot.rule import Namespace, ArgumentParser
-from nonebot import logger, on_command, on_shell_command
-from nonebot.params import CommandArg, ArgPlainText, ShellCommandArgs
+from nonebot.matcher import Matcher
+from nonebot.params import ArgPlainText, CommandArg, ShellCommandArgs
+from nonebot.rule import ArgumentParser, Namespace
+from nonebot.typing import T_State
 from nonebot_plugin_saa import Image, MessageFactory, MessageSegmentFactory
 
-from .utils import ResolveValueError, resolve_value
-from .resource import LOADED_STICKER_INFO, StickerInfo
 from .draw import (
     DEFAULT_FONT_WEIGHT,
     DEFAULT_LINE_SPACING,
     DEFAULT_STROKE_WIDTH,
-    i2b,
     draw_sticker,
-    use_image_cache,
+    i2b,
     render_all_characters,
     render_character_stickers,
+    use_image_cache,
 )
+from .resource import LOADED_STICKER_INFO, StickerInfo
+from .utils import ResolveValueError, resolve_value
 
 cmd_sticker_list = on_command("pjsk列表", aliases={"啤酒烧烤列表", "pjsk表情列表"})
 

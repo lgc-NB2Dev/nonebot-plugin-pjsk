@@ -3,8 +3,8 @@ from nonebot.plugin import PluginMetadata
 
 require("nonebot_plugin_saa")
 
-from .config import ConfigModel  # noqa: E402
 from . import __main__ as __main__  # noqa: E402
+from .config import ConfigModel  # noqa: E402
 
 __version__ = "0.2.1"
 __plugin_meta__ = PluginMetadata(

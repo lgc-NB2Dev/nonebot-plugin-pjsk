@@ -1,12 +1,12 @@
-import shutil
 import asyncio
+import shutil
 from pathlib import Path
-from typing import List, Coroutine
+from typing import Coroutine, List
 
 import anyio
 from loguru import logger
 from nonebot import get_driver
-from pydantic import Field, BaseModel, parse_raw_as
+from pydantic import BaseModel, Field, parse_raw_as
 
 from .config import config
 from .utils import ResponseType, async_request, with_semaphore
