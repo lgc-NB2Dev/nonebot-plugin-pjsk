@@ -1,12 +1,12 @@
-import shutil
 import asyncio
+import random
+import shutil
 from pathlib import Path
-from typing import List, Coroutine
+from typing import Coroutine, List, Optional, overload
 
 import anyio
-from loguru import logger
-from nonebot import get_driver
-from pydantic import Field, BaseModel, parse_raw_as
+from nonebot import get_driver, logger
+from pydantic import BaseModel, Field, parse_raw_as
 
 from .config import config
 from .utils import ResponseType, async_request, with_semaphore
@@ -49,6 +49,24 @@ class StickerInfo(BaseModel):
 
 
 LOADED_STICKER_INFO: List[StickerInfo] = []
+
+
+@overload
+def select_or_get_random(sticker_id: None = None) -> StickerInfo:
+    ...
+
+
+@overload
+def select_or_get_random(sticker_id: str) -> Optional[StickerInfo]:
+    ...
+
+
+def select_or_get_random(sticker_id: Optional[str] = None) -> Optional[StickerInfo]:
+    return (
+        next((x for x in LOADED_STICKER_INFO if sticker_id == x.sticker_id), None)
+        if sticker_id
+        else random.choice(LOADED_STICKER_INFO)
+    )
 
 
 async def check_and_download_font():

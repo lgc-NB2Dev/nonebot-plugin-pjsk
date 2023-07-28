@@ -1,102 +1,38 @@
-import random
 from typing import List, Optional
 
-from nonebot.typing import T_State
-from nonebot.matcher import Matcher
+from nonebot import logger, on_command, on_shell_command
 from nonebot.exception import ParserExit
 from nonebot.internal.adapter import Message
-from nonebot.rule import Namespace, ArgumentParser
-from nonebot import logger, on_command, on_shell_command
-from nonebot.params import CommandArg, ArgPlainText, ShellCommandArgs
-from nonebot_plugin_saa import Image, MessageFactory, MessageSegmentFactory
+from nonebot.matcher import Matcher
+from nonebot.params import Arg, ArgPlainText, CommandArg, ShellCommandArgs
+from nonebot.rule import ArgumentParser, Namespace
+from nonebot.typing import T_State
+from nonebot_plugin_saa import Image, MessageFactory, MessageSegmentFactory, Text
 
-from .utils import ResolveValueError, resolve_value
-from .resource import LOADED_STICKER_INFO, StickerInfo
 from .draw import (
     DEFAULT_FONT_WEIGHT,
     DEFAULT_LINE_SPACING,
     DEFAULT_STROKE_WIDTH,
-    i2b,
     draw_sticker,
-    use_image_cache,
-    render_all_characters,
-    render_character_stickers,
+    get_all_characters,
+    get_character_stickers,
+    i2b,
 )
+from .resource import select_or_get_random
+from .utils import ResolveValueError, resolve_value
 
-cmd_sticker_list = on_command("pjsk列表", aliases={"啤酒烧烤列表", "pjsk表情列表"})
-
-
-@cmd_sticker_list.handle()
-async def _(matcher: Matcher, arg: Message = CommandArg()):
-    # character = arg.extract_plain_text().strip()
-    if character := arg.extract_plain_text().strip():
-        try:
-            img = await use_image_cache(render_character_stickers, character)(character)
-        except Exception:
-            logger.exception("Error occurred while rendering all characters")
-            await matcher.finish("生成表情列表时出错，请检查后台日志")
-
-        if not img:
-            await matcher.finish(f"没有找到角色 {arg}")
-
-        messages: List[MessageSegmentFactory] = [Image(img)]
-        await MessageFactory(messages).finish(reply=True)
-    else:
-        img = await use_image_cache(render_all_characters, "all_characters")()
-        await MessageFactory([Image(img)]).send(reply=True)
-
-
-@cmd_sticker_list.got("character", prompt="请输入 <角色名>` 查看角色下所有表情的 ID")
-async def _(matcher: Matcher, character: str = ArgPlainText()):
-    img = await use_image_cache(render_character_stickers, character)(character)
-    if not img:
-        await matcher.finish(f"没有找到角色 {character}")
-    await MessageFactory([Image(img)]).send(reply=True)
-
-
-@cmd_sticker_list.got("sticker_id", prompt="请输入角色id")
-async def _(state: T_State, matcher: Matcher, sticker_id: str = ArgPlainText()):
-    selected_sticker = (
-        next((x for x in LOADED_STICKER_INFO if sticker_id == x.sticker_id), None)
-        if sticker_id
-        else random.choice(LOADED_STICKER_INFO)
-    )
-    if not selected_sticker:
-        await matcher.finish("没有找到对应 ID 的表情")
-    state["selected_sticker"] = selected_sticker
-
-
-@cmd_sticker_list.got("texts", prompt="请输入文字信息")
-async def _(state: T_State, matcher: Matcher, texts: str = ArgPlainText()):
-    selected_sticker: StickerInfo = state["selected_sticker"]
-    default_text = selected_sticker.default_text
-    try:
-        image = await draw_sticker(
-            selected_sticker,
-            text=" ".join(texts) if texts else default_text.text,
-            x=resolve_value(None, default_text.x),
-            y=resolve_value(None, default_text.y),
-            rotate=resolve_value(None, default_text.r),
-            font_size=resolve_value(None, default_text.s),
-            stroke_width=resolve_value(None, DEFAULT_STROKE_WIDTH),
-            line_spacing=resolve_value(None, DEFAULT_LINE_SPACING, float),
-            font_weight=resolve_value(None, DEFAULT_FONT_WEIGHT),
-        )
-    except ResolveValueError:
-        await matcher.finish("参数解析出错")
-    except Exception:
-        logger.exception("Error occurred while drawing sticker")
-        await matcher.finish("生成表情时出错，请检查后台日志")
-
-    await MessageFactory([Image(i2b(image))]).finish(reply=True)
-
+cmd_sticker_list = on_command(
+    "pjsk列表",
+    aliases={"啤酒烧烤列表", "pjsk表情列表", "啤酒烧烤表情列表"},
+    state={"interact": False},
+)
 
 cmd_generate_parser = ArgumentParser(
     "pjsk",
     description="Project Sekai 表情生成",
     epilog="Tip：大部分有默认值的数值参数都可以用 `^` 开头指定相对于默认值的偏移量",
 )
-cmd_generate_parser.add_argument("text", nargs="*", help="添加的文字，为空时使用默认值")
+cmd_generate_parser.add_argument("text", nargs="*", help="添加的文字，为空时进入交互模式")
 cmd_generate_parser.add_argument(
     "-i",
     "--id",
@@ -111,9 +47,9 @@ cmd_generate_parser.add_argument(
     help="文字旋转的角度，单位为 `(ROTATE / 10) 弧度`",
 )
 cmd_generate_parser.add_argument("-s", "--size", help="文字的大小")
+cmd_generate_parser.add_argument("-w", "--weight", help="文本粗细")
 cmd_generate_parser.add_argument("--stroke-width", help="文本描边宽度")
 cmd_generate_parser.add_argument("--line-spacing", help="文本行间距")
-cmd_generate_parser.add_argument("--weight", help="文本粗细")
 
 cmd_generate = on_shell_command(
     "pjsk",
@@ -123,6 +59,7 @@ cmd_generate = on_shell_command(
 )
 
 
+# failed to parse args
 @cmd_generate.handle()
 async def _(matcher: Matcher, foo: ParserExit = ShellCommandArgs()):
     if not foo.message:
@@ -132,14 +69,14 @@ async def _(matcher: Matcher, foo: ParserExit = ShellCommandArgs()):
     await matcher.finish(f"参数解析出错：{foo.message}")
 
 
+# command or enter interact mode handler
 @cmd_generate.handle()
 async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
+    if not any(vars(args).values()):  # 没有任何参数
+        matcher.skip()  # 跳过该 handler 进入交互模式
+
     sticker_id: Optional[str] = args.id
-    selected_sticker = (
-        next((x for x in LOADED_STICKER_INFO if sticker_id == x.sticker_id), None)
-        if sticker_id
-        else random.choice(LOADED_STICKER_INFO)
-    )
+    selected_sticker = select_or_get_random(sticker_id)
     if not selected_sticker:
         await matcher.finish("没有找到对应 ID 的表情")
 
@@ -157,8 +94,113 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
             line_spacing=resolve_value(args.line_spacing, DEFAULT_LINE_SPACING, float),
             font_weight=resolve_value(args.weight, DEFAULT_FONT_WEIGHT),
         )
-    except ResolveValueError:
-        await matcher.finish("参数解析出错")
+    except ResolveValueError as e:
+        await matcher.finish(f"提供的参数值 `{e.args[0]}` 解析出错")
+    except Exception:
+        logger.exception("Error occurred while drawing sticker")
+        await matcher.finish("生成表情时出错，请检查后台日志")
+
+    await MessageFactory([Image(i2b(image))]).finish(reply=True)
+
+
+async def handle_exit(matcher: Matcher, arg: str):
+    if arg in ("0", "q", "e", "quit", "exit", "退出"):
+        await matcher.finish("已退出交互创建模式")
+
+
+# interact mode or sticker list
+@cmd_sticker_list.handle()
+async def _(matcher: Matcher, arg: Message = CommandArg()):
+    if arg.extract_plain_text().strip():
+        matcher.set_arg("character", arg)
+
+
+# character list
+@cmd_generate.handle()
+@cmd_sticker_list.handle()
+async def _(matcher: Matcher, state: T_State):
+    if "character" in state:
+        matcher.skip()
+
+    interact = state.get("interact", True)
+    tip_text = (
+        "请发送你要生成表情的角色名称，或者直接发送表情 ID，或者发送 `随机` 使用一张随机表情\nTip：你可以随时发送 `0` 退出交互模式"
+        if interact
+        else "Tip：发送指令 `pjsk列表 <角色名>` 查看角色下所有表情的 ID"
+    )
+
+    try:
+        image = await get_all_characters()
+    except Exception:
+        logger.exception("Error occurred while getting character list")
+        await matcher.finish("获取角色列表图片出错，请检查后台日志")
+
+    factory = MessageFactory([Image(image), Text(tip_text)])
+    await (factory.send if interact else factory.finish)(reply=True)
+
+
+# sticker id list
+@cmd_generate.got("character")
+@cmd_sticker_list.got("character")
+async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character")):
+    character = arg_msg.extract_plain_text().strip()
+    await handle_exit(matcher, character)
+
+    interact = state.get("interact", True)
+
+    # 交互模式
+    if interact:
+        if character == "随机":
+            matcher.set_arg("sticker_id", type(arg_msg)())
+            matcher.skip()
+
+        elif character.isdigit():  # 直接发送了表情 ID
+            if not select_or_get_random(character):
+                await matcher.reject("没有找到对应 ID 的表情，请重新输入")
+            matcher.set_arg("sticker_id", arg_msg)
+            matcher.skip()
+
+    try:
+        image = await get_character_stickers(character)
+    except Exception:
+        logger.exception("Error occurred while getting sticker list")
+        await matcher.finish("获取表情列表图片出错，请检查后台日志")
+
+    if not image:
+        if interact:
+            await matcher.reject("没有找到对应名称的角色，请重新输入")
+        await matcher.finish("没有找到对应名称的角色")
+
+    segments: List[MessageSegmentFactory] = [Image(image)]
+    if interact:
+        segments.append(Text("请发送你要生成表情的 ID"))
+
+    factory = MessageFactory(segments)
+    await (factory.send if interact else factory.finish)(reply=True)
+
+
+# below are interact mode handlers
+@cmd_generate.got("sticker_id")
+async def _(matcher: Matcher, arg: str = ArgPlainText("sticker_id")):
+    arg = arg.strip()
+    await handle_exit(matcher, arg)
+
+    if not select_or_get_random(arg or None):  # 上面传过来的空消息转 None 获取随机表情
+        await matcher.reject("没有找到对应 ID 的表情，请重新输入")
+    await matcher.send("请发送你想要写在表情上的的文字")
+
+
+@cmd_generate.got("text")
+async def _(
+    matcher: Matcher,
+    sticker_id: str = ArgPlainText(),
+    text: str = ArgPlainText(),
+):
+    sticker_info = select_or_get_random(sticker_id)
+    assert sticker_info is not None
+
+    try:
+        image = await draw_sticker(sticker_info, text=text)
     except Exception:
         logger.exception("Error occurred while drawing sticker")
         await matcher.finish("生成表情时出错，请检查后台日志")

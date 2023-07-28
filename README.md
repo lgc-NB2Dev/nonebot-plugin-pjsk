@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD031 MD033 MD036 MD041 -->
+<!-- markdownlint-disable MD026 MD031 MD033 MD036 MD041 -->
 
 <div align="center">
 
@@ -14,7 +14,7 @@
 
 _✨ Project Sekai 表情包制作 ✨_
 
-<img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="python">
+<img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="python">
 <a href="https://pdm.fming.dev">
   <img src="https://img.shields.io/badge/pdm-managed-blueviolet" alt="pdm-managed">
 </a>
@@ -37,6 +37,8 @@ _✨ Project Sekai 表情包制作 ✨_
 </div>
 
 ## 📖 介绍
+
+### Wonderhoy!
 
 ![Wonderhoy](./readme/wonderhoy.png)
 
@@ -109,12 +111,20 @@ plugins = [
 
 ## 🎉 使用
 
-使用指令 `pjsk -h` 查看插件帮助
+直接使用指令 `pjsk` 进入交互创建模式；  
+使用指令 `pjsk -h` 了解使用 Shell-Like 指令创建表情的帮助
 
 ### 效果图
 
 <details>
-<summary>点击展开</summary>
+<summary>使用交互创建模式</summary>
+
+![example](./readme/example-interact.png)
+
+</details>
+
+<details>
+<summary>使用 Shell-Like 指令</summary>
 
 ![example](./readme/example.png)
 
@@ -140,4 +150,15 @@ plugins = [
 
 ## 📝 更新日志
 
-芝士刚刚发布的插件，还没有更新日志的说 qwq~
+### 0.2.2
+
+- 修改了 0.2.1 版的交互创建模式的触发方式
+- 试验性地支持了 Emoji
+
+### 0.2.1
+
+- 更改指令 `pjsk列表` 的交互方式
+
+### 0.2.0
+
+- 重构插件

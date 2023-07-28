@@ -1,31 +1,45 @@
 import asyncio
+from functools import partial
 from io import BytesIO
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Coroutine,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    overload,
+)
 from typing_extensions import ParamSpec
-from typing import Any, Dict, List, Callable, Optional, Awaitable, Coroutine, overload
 
 import anyio
-from PIL import Image
-from numpy import rad2deg
-from pil_utils import BuildImage
-from pil_utils.types import ColorType
 from imagetext_py import (
-    Font,
-    Color,
-    Paint,
     Canvas,
+    Color,
+    EmojiOptions,
+    EmojiSource,
+    Font,
+    Paint,
     TextAlign,
     draw_text_multiline,
     text_size_multiline,
 )
+from numpy import rad2deg
+from PIL import Image
+from pil_utils import BuildImage
+from pil_utils.types import ColorType
 
-from .utils import split_list
+from .config import config
 from .resource import (
-    FONT_PATHS,
     CACHE_FOLDER,
-    RESOURCE_FOLDER,
+    FONT_PATHS,
     LOADED_STICKER_INFO,
+    RESOURCE_FOLDER,
     StickerInfo,
 )
+from .utils import split_list
 
 P = ParamSpec("P")
 
@@ -40,7 +54,13 @@ DEFAULT_LINE_SPACING = 1.3
 def ensure_font() -> Font:
     global FONT
     if not FONT:
-        FONT = Font(str(FONT_PATHS[0]), [str(x) for x in FONT_PATHS[1:]])
+        FONT = Font(
+            str(FONT_PATHS[0]),
+            [str(x) for x in FONT_PATHS[1:]],
+            emoji_options=EmojiOptions(
+                source=getattr(EmojiSource, config.pjsk_emoji_source),
+            ),
+        )
     return FONT
 
 
@@ -50,7 +70,7 @@ def hex_to_color(hex_color: str) -> Color:
     return Color.from_hex(hex_color)
 
 
-def render_text(
+async def render_text(
     text: str,
     color: str,
     font_size: int,
@@ -63,28 +83,41 @@ def render_text(
     text_lines = text.splitlines()
     padding = stoke_width
 
-    actual_size = text_size_multiline(text_lines, font_size, font, line_spacing)
+    actual_size = await anyio.to_thread.run_sync(
+        partial(
+            text_size_multiline,
+            lines=text_lines,
+            size=font_size,
+            font=font,
+            line_spacing=line_spacing,
+            draw_emojis=True,
+        ),
+    )
     size = (
         actual_size[0] + padding * 2,
         actual_size[1] + padding * 2 + font_size // 2,  # 更多纵向 padding 防止文字被裁
     )
 
     canvas = Canvas(*size, Color(255, 255, 255, 0))
-    draw_text_multiline(
-        canvas,
-        text_lines,  # type: ignore 这里是源代码有问题
-        size[0] // 2,
-        size[1] // 2,
-        0.5,
-        0.5,
-        font_weight,
-        font_size,
-        font,
-        Paint(hex_to_color(color)),
-        line_spacing,
-        TextAlign.Center,
-        stoke_width,  # type: ignore same
-        Paint(Color(255, 255, 255)),
+    await anyio.to_thread.run_sync(
+        partial(
+            draw_text_multiline,
+            canvas=canvas,
+            lines=text_lines,
+            x=size[0] // 2,
+            y=size[1] // 2,
+            ax=0.5,
+            ay=0.5,
+            width=font_weight,
+            size=font_size,
+            font=font,
+            fill=Paint(hex_to_color(color)),
+            line_spacing=line_spacing,
+            align=TextAlign.Center,
+            stroke=stoke_width,  # type: ignore 源码 type 有问题
+            stroke_color=Paint(Color(255, 255, 255)),
+            draw_emojis=True,
+        ),
     )
 
     return canvas.to_image().convert("RGBA")
@@ -128,7 +161,7 @@ async def draw_sticker(
     font_weight: Optional[int] = None,
 ) -> Image.Image:
     sticker_img = await anyio.Path(RESOURCE_FOLDER / info.img).read_bytes()
-    text_img = render_text(
+    text_img = await render_text(
         text or info.default_text.text,
         info.color,
         font_size or info.default_text.s,
@@ -171,32 +204,18 @@ def render_summary_picture(
     return bg
 
 
-async def render_all_characters() -> Image.Image:
-    characters: Dict[str, StickerInfo] = {}
-    for info in LOADED_STICKER_INFO:
-        if info.character not in characters:
-            characters[info.character] = info
-
-    tasks: List[Coroutine[Any, Any, Image.Image]] = [
-        draw_sticker(info, info.character.capitalize()) for info in characters.values()
-    ]
-    images: List[Image.Image] = await asyncio.gather(*tasks)
-    return render_summary_picture(images)
-
-
-async def render_character_stickers(character: str) -> Optional[Image.Image]:
-    character = character.lower()
-
-    tasks: List[Coroutine[Any, Any, Image.Image]] = [
-        draw_sticker(info, info.sticker_id)
-        for info in LOADED_STICKER_INFO
-        if info.character.lower() == character
-    ]
-    if not tasks:
-        return None
-
-    images: List[Image.Image] = await asyncio.gather(*tasks)
-    return render_summary_picture(images)
+async def render_summary_from_tasks(
+    tasks: Iterable[Awaitable[Image.Image]],
+    padding: int = 15,
+    line_max: int = 5,
+    background: Optional[ColorType] = None,
+) -> Image.Image:
+    return render_summary_picture(
+        await asyncio.gather(*tasks),
+        padding,
+        line_max,
+        background,
+    )
 
 
 @overload
@@ -236,3 +255,31 @@ def use_image_cache(
         return image
 
     return wrapper
+
+
+async def render_all_characters() -> Image.Image:
+    characters: Dict[str, StickerInfo] = {}
+    for info in LOADED_STICKER_INFO:
+        if info.character not in characters:
+            characters[info.character] = info
+    return await render_summary_from_tasks(
+        draw_sticker(info, info.character.capitalize()) for info in characters.values()
+    )
+
+
+async def get_all_characters() -> bytes:
+    return await use_image_cache(render_all_characters, "all_characters")()
+
+
+async def render_character_stickers(character: str) -> Optional[Image.Image]:
+    character = character.lower()
+    tasks: List[Coroutine[Any, Any, Image.Image]] = [
+        draw_sticker(info, info.sticker_id)
+        for info in LOADED_STICKER_INFO
+        if info.character.lower() == character
+    ]
+    return (await render_summary_from_tasks(tasks)) if tasks else None
+
+
+async def get_character_stickers(character: str) -> Optional[bytes]:
+    return await use_image_cache(render_character_stickers, character)(character)

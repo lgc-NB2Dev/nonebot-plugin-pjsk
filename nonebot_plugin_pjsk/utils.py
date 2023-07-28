@@ -1,7 +1,6 @@
-import math
-from enum import Enum, auto
 from asyncio import Semaphore
-from typing import Any, List, Type, Literal, TypeVar, Iterable, Optional, overload
+from enum import Enum, auto
+from typing import Any, Iterable, List, Literal, Optional, Type, TypeVar, overload
 
 from httpx import AsyncClient
 
@@ -72,10 +71,6 @@ def with_semaphore(semaphore: Semaphore):
     return decorator
 
 
-def rad2deg(rad: float) -> float:
-    return rad * 180 / math.pi
-
-
 def split_list(li: Iterable[T], length: int) -> List[List[T]]:
     latest = []
     tmp = []
@@ -105,4 +100,4 @@ def resolve_value(
             return default + expected_type(value[1:])
         return expected_type(value)  # type: ignore pylance 抽风
     except Exception as e:
-        raise ResolveValueError from e
+        raise ResolveValueError(value) from e
