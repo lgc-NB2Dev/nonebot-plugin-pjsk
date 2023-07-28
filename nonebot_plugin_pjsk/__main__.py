@@ -72,8 +72,7 @@ async def _(matcher: Matcher, foo: ParserExit = ShellCommandArgs()):
 # command or enter interact mode handler
 @cmd_generate.handle()
 async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
-    texts: Optional[List[str]] = args.text
-    if not texts:
+    if not any(vars(args).values()):  # 没有任何参数
         matcher.skip()  # 跳过该 handler 进入交互模式
 
     sticker_id: Optional[str] = args.id
@@ -81,6 +80,7 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
     if not selected_sticker:
         await matcher.finish("没有找到对应 ID 的表情")
 
+    texts: Optional[List[str]] = args.text
     default_text = selected_sticker.default_text
     try:
         image = await draw_sticker(
