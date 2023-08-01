@@ -304,13 +304,23 @@ async def render_help_image(text: str) -> Image.Image:
     width = 950
     padding = 24
 
-    # 服了这个空行
-    wrapped = list(
-        itertools.chain.from_iterable(
-            text_wrap(x, width - padding * 2, font_size, font) if x else " "
+    # 这个空行还有缩进的处理，实属无奈
+    wrapped = [
+        x[1:] if x.startswith(">") else x
+        for x in itertools.chain.from_iterable(
+            (
+                text_wrap(
+                    f">{x}" if x.startswith(" ") else x,
+                    width - padding * 2,
+                    font_size,
+                    font,
+                )
+                if x
+                else " "
+            )
             for x in text.splitlines()
-        ),
-    )
+        )
+    ]
     size = text_size_multiline(wrapped, font_size, font, line_spacing)
 
     canvas = Canvas(width, size[1] + padding * 2, Color.from_hex(ONE_DARK_BLACK))

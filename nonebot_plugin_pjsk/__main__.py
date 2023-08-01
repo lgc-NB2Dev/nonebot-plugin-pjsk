@@ -60,7 +60,7 @@ HELP = (
     "\n"
     f"{cmd_generate_parser.format_help()}\n"
     "\n"
-    "Tips："
+    "Tips：\n"
     "- 大部分有默认值的数值参数都可以用 ^ 开头指定相对于默认值的偏移量\n"
     "- 不提供任何指令参数时会进入交互创建模式"
 )
