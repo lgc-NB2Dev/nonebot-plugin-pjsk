@@ -197,7 +197,7 @@ async def draw_sticker(
     auto_adjust: bool = False,  # noqa: FBT001
 ) -> Image.Image:
     sticker_img = await anyio.Path(RESOURCE_FOLDER / info.img).read_bytes()
-    rotate_deg = rotate or -rad2deg(info.default_text.r / 10)
+    rotate_deg = -(rotate or rad2deg(info.default_text.r / 10))
     text_img = await render_text(
         text or info.default_text.text,
         info.color,
