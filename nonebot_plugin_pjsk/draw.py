@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 from functools import partial
 from io import BytesIO
 from math import cos, sin
@@ -12,6 +13,7 @@ from typing import (
     List,
     Optional,
     Tuple,
+    Union,
     overload,
 )
 from typing_extensions import ParamSpec
@@ -27,11 +29,10 @@ from imagetext_py import (
     TextAlign,
     draw_text_multiline,
     text_size_multiline,
+    text_wrap,
 )
 from numpy import deg2rad, rad2deg
 from PIL import Image
-from pil_utils import BuildImage
-from pil_utils.types import ColorType
 
 from .config import config
 from .resource import (
@@ -44,9 +45,11 @@ from .resource import (
 from .utils import split_list
 
 P = ParamSpec("P")
+ColorType = Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]
 
 
 FONT: Optional[Font] = None
+SYSTEM_FONT: Optional[Font] = None
 
 DEFAULT_FONT_WEIGHT = 700
 DEFAULT_STROKE_WIDTH = 9
@@ -54,6 +57,9 @@ DEFAULT_LINE_SPACING = 1.3
 
 CANVAS_SIZE = (296, 256)
 MAX_TEXT_IMAGE_SIZE = 2048
+
+ONE_DARK_BLACK = "282c34"
+ONE_DARK_WHITE = "abb2bf"
 
 
 class TextTooLargeError(ValueError):
@@ -87,16 +93,38 @@ def calc_rotated_size(width: int, height: int, rotate_deg: float) -> Tuple[int, 
     )
 
 
+def resize_sticker(image: Image.Image, size: Tuple[int, int], **kwargs) -> Image.Image:
+    width, height = size
+    ratio = min(width / image.width, height / image.height)
+    width = int(image.width * ratio)
+    height = int(image.height * ratio)
+
+    image = image.resize((width, height), resample=Image.BICUBIC, **kwargs)
+    new_image = Image.new("RGBA", size, (255, 255, 255, 0))
+    new_image.paste(image, ((size[0] - width) // 2, (size[1] - height) // 2))
+    return new_image
+
+
+def get_ax_by_align(align: TextAlign) -> float:
+    if align is TextAlign.Left:
+        return 0
+    if align is TextAlign.Right:
+        return 1
+    return 0.5  # center
+
+
 async def render_text(
     text: str,
     color: str,
     font_size: int,
-    font_weight: int,
-    stoke_width: int,
-    line_spacing: float,
+    font_weight: int = DEFAULT_FONT_WEIGHT,
+    stoke_width: int = DEFAULT_STROKE_WIDTH,
+    line_spacing: float = DEFAULT_LINE_SPACING,
+    align: TextAlign = TextAlign.Center,
     max_width: Optional[int] = None,
     will_rotate: Optional[float] = None,
     min_size: int = 8,
+    error_when_too_large: bool = True,  # noqa: FBT001
 ) -> Image.Image:
     font = ensure_font()
 
@@ -131,7 +159,9 @@ async def render_text(
             break
         font_size -= 1
 
-    if size[0] > MAX_TEXT_IMAGE_SIZE or size[1] > MAX_TEXT_IMAGE_SIZE:
+    if error_when_too_large and (
+        size[0] > MAX_TEXT_IMAGE_SIZE or size[1] > MAX_TEXT_IMAGE_SIZE
+    ):
         raise TextTooLargeError
 
     canvas = Canvas(*size, Color(255, 255, 255, 0))
@@ -142,14 +172,14 @@ async def render_text(
             lines=text_lines,
             x=size[0] // 2,
             y=size[1] // 2,
-            ax=0.5,
+            ax=get_ax_by_align(align),
             ay=0.5,
             width=font_weight,
             size=font_size,
             font=font,
             fill=Paint(hex_to_color(color)),
             line_spacing=line_spacing,
-            align=TextAlign.Center,
+            align=align,
             stroke=stoke_width,  # type: ignore 源码 type 有问题
             stroke_color=Paint(Color(255, 255, 255)),
             draw_emojis=True,
@@ -166,7 +196,7 @@ def paste_text_on_image(
     y: int,
     rotate: int,
 ) -> Image.Image:
-    image = BuildImage(image).resize(CANVAS_SIZE, keep_ratio=True, inside=True).image
+    image = resize_sticker(image, CANVAS_SIZE)
 
     text_bg = Image.new("RGBA", CANVAS_SIZE, (255, 255, 255, 0))
     text = text.rotate(-rotate, resample=Image.BICUBIC, expand=True)
@@ -175,10 +205,21 @@ def paste_text_on_image(
     return Image.alpha_composite(image, text_bg)
 
 
-def i2b(image: Image.Image, image_format: str = "PNG") -> bytes:
+def i2b(
+    image: Image.Image,
+    image_format: str = "PNG",
+    background: Optional[ColorType] = None,
+) -> bytes:
     image_format = image_format.upper()
+
     if image_format == "JPEG":
-        image = image.convert("RGB")
+        if background:
+            new_image = Image.new("RGBA", image.size, background)
+            new_image.paste(image, mask=image)
+            image = new_image.convert("RGB")
+        else:
+            image = image.convert("RGB")
+
     b = BytesIO()
     image.save(b, image_format)
     return b.getvalue()
@@ -229,7 +270,7 @@ def render_summary_picture(
     height = sum([max([x.size[1] for x in line]) for line in lines]) + (
         padding * (len(lines) + 1)
     )
-    bg = Image.new("RGBA", (width, height), background or (0, 0, 0))
+    bg = Image.new("RGBA", (width, height), background or ONE_DARK_BLACK)
 
     y_offset = padding
     for line in lines:
@@ -256,11 +297,46 @@ async def render_summary_from_tasks(
     )
 
 
+async def render_help_image(text: str) -> Image.Image:
+    font = ensure_font()
+    font_size = 24
+    line_spacing = 1.2
+    width = 950
+    padding = 24
+
+    # 服了这个空行
+    wrapped = list(
+        itertools.chain.from_iterable(
+            text_wrap(x, width - padding * 2, font_size, font) if x else " "
+            for x in text.splitlines()
+        ),
+    )
+    size = text_size_multiline(wrapped, font_size, font, line_spacing)
+
+    canvas = Canvas(width, size[1] + padding * 2, Color.from_hex(ONE_DARK_BLACK))
+    draw_text_multiline(
+        canvas,
+        wrapped,
+        padding,
+        padding,
+        0,
+        0,
+        400,
+        font_size,
+        font,
+        Paint(Color.from_hex(ONE_DARK_WHITE)),
+        line_spacing,
+    )
+
+    return canvas.to_image()
+
+
 @overload
 def use_image_cache(
     func: Callable[P, Awaitable[Image.Image]],
     filename: str,
     image_format: str = "JPEG",
+    background: Optional[ColorType] = None,
 ) -> Callable[P, Awaitable[bytes]]:
     ...
 
@@ -270,6 +346,7 @@ def use_image_cache(
     func: Callable[P, Awaitable[Optional[Image.Image]]],
     filename: str,
     image_format: str = "JPEG",
+    background: Optional[ColorType] = None,
 ) -> Callable[P, Awaitable[Optional[bytes]]]:
     ...
 
@@ -278,6 +355,7 @@ def use_image_cache(
     func: Callable[P, Awaitable[Optional[Image.Image]]],
     filename: str,
     image_format: str = "JPEG",
+    background: Optional[ColorType] = None,
 ) -> Callable[P, Awaitable[Optional[bytes]]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Optional[bytes]:
         path = anyio.Path(CACHE_FOLDER) / f"{filename}.{image_format.lower()}"
@@ -288,7 +366,7 @@ def use_image_cache(
         if not raw_image:
             return None
 
-        image = i2b(raw_image, image_format)
+        image = i2b(raw_image, image_format, background)
         await path.write_bytes(image)
         return image
 

@@ -107,7 +107,8 @@ plugins = [
 
 ## ⚙️ 配置
 
-插件有配置项，但是一般情况下无需更改，请自行查看 [config.py](./nonebot_plugin_pjsk/config.py) 文件
+见 [config.py](./nonebot_plugin_pjsk/config.py) 文件  
+插件开箱即用，如无需要则无须配置
 
 ## 🎉 使用
 
@@ -155,6 +156,8 @@ plugins = [
 - 限制了贴纸文本大小，以免 Bot 瞬间爆炸
 - 未提供字体大小时适应性调节 ([#14](https://github.com/Agnes4m/nonebot_plugin_pjsk/issues/14))
 - 参数 `--rotate` 改为提供角度值，正数为顺时针旋转
+- 将指令帮助渲染为图片发送（可以关）
+- 丢掉了 `pil-utils` 依赖
 
 ### 0.2.2
 

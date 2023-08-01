@@ -10,6 +10,7 @@ from nonebot.typing import T_State
 from nonebot_plugin_saa import Image, MessageFactory, MessageSegmentFactory, Text
 from numpy import rad2deg
 
+from .config import config
 from .draw import (
     DEFAULT_FONT_WEIGHT,
     DEFAULT_LINE_SPACING,
@@ -19,6 +20,8 @@ from .draw import (
     get_all_characters,
     get_character_stickers,
     i2b,
+    render_help_image,
+    use_image_cache,
 )
 from .resource import select_or_get_random
 from .utils import ResolveValueError, resolve_value
@@ -29,11 +32,7 @@ cmd_sticker_list = on_command(
     state={"interact": False},
 )
 
-cmd_generate_parser = ArgumentParser(
-    "pjsk",
-    description="Project Sekai 表情生成",
-    epilog="Tip 1：大部分有默认值的数值参数都可以用 `^` 开头指定相对于默认值的偏移量\nTip 2：不提供任何参数时会进入交互创建模式",
-)
+cmd_generate_parser = ArgumentParser("pjsk")
 cmd_generate_parser.add_argument("text", nargs="*", help="添加的文字，为空时使用默认值")
 cmd_generate_parser.add_argument(
     "-i",
@@ -56,6 +55,17 @@ cmd_generate = on_shell_command(
 )
 
 
+HELP = (
+    "Project Sekai 表情生成\n"
+    "\n"
+    f"{cmd_generate_parser.format_help()}\n"
+    "\n"
+    "Tips："
+    "- 大部分有默认值的数值参数都可以用 ^ 开头指定相对于默认值的偏移量\n"
+    "- 不提供任何指令参数时会进入交互创建模式"
+)
+
+
 async def handle_exit(matcher: Matcher, arg: str):
     if arg in ("0", "q", "e", "quit", "exit", "退出"):
         await matcher.finish("已退出交互创建模式")
@@ -75,8 +85,18 @@ def format_error(error: Exception) -> str:
 async def _(matcher: Matcher, foo: ParserExit = ShellCommandArgs()):
     if not foo.message:
         return
+
     if foo.status == 0:
-        await matcher.finish(foo.message)
+        if config.pjsk_help_as_image:
+            try:
+                img = await use_image_cache(render_help_image, "help", "JPEG")(HELP)
+            except Exception:
+                logger.exception("Error occurred while rendering help image")
+                await matcher.finish("生成帮助图片时出错，请检查后台日志")
+            await MessageFactory([Image(img)]).finish(reply=True)
+
+        await matcher.finish(HELP)
+
     await matcher.finish(f"参数解析出错：{foo.message}")
 
 
