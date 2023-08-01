@@ -58,8 +58,8 @@ DEFAULT_LINE_SPACING = 1.3
 CANVAS_SIZE = (296, 256)
 MAX_TEXT_IMAGE_SIZE = 2048
 
-ONE_DARK_BLACK = "282c34"
-ONE_DARK_WHITE = "abb2bf"
+ONE_DARK_BLACK = "#282c34"
+ONE_DARK_WHITE = "#abb2bf"
 
 
 class TextTooLargeError(ValueError):
@@ -323,7 +323,7 @@ async def render_help_image(text: str) -> Image.Image:
     ]
     size = text_size_multiline(wrapped, font_size, font, line_spacing)
 
-    canvas = Canvas(width, size[1] + padding * 2, Color.from_hex(ONE_DARK_BLACK))
+    canvas = Canvas(width, size[1] + padding * 2, hex_to_color(ONE_DARK_BLACK))
     draw_text_multiline(
         canvas,
         wrapped,
@@ -334,7 +334,7 @@ async def render_help_image(text: str) -> Image.Image:
         400,
         font_size,
         font,
-        Paint(Color.from_hex(ONE_DARK_WHITE)),
+        Paint(hex_to_color(ONE_DARK_WHITE)),
         line_spacing,
     )
 
