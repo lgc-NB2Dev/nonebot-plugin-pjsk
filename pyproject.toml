@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-pjsk"
-version = "0.2.3"
+version = "0.2.3.post1"
 description = "Project Sekai Sticker Creator for NoneBot2."
 authors = [
     { name = "Agnes_Digital", email = "Z735803792@163.com" },
