@@ -41,12 +41,7 @@ cmd_generate_parser.add_argument(
 )
 cmd_generate_parser.add_argument("-x", help="文字的中心 x 坐标")
 cmd_generate_parser.add_argument("-y", help="文字的中心 y 坐标")
-cmd_generate_parser.add_argument(
-    "-r",
-    "--rotate",
-    type=str,
-    help="文字旋转的角度，单位为 `(ROTATE / 10) 弧度`",
-)
+cmd_generate_parser.add_argument("-r", "--rotate", help="文字旋转的角度")
 cmd_generate_parser.add_argument("-s", "--size", help="文字的大小")
 cmd_generate_parser.add_argument("-w", "--weight", help="文本粗细")
 cmd_generate_parser.add_argument("--stroke-width", help="文本描边宽度")
@@ -108,6 +103,7 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
             stroke_width=resolve_value(args.stroke_width, DEFAULT_STROKE_WIDTH),
             line_spacing=resolve_value(args.line_spacing, DEFAULT_LINE_SPACING, float),
             font_weight=resolve_value(args.weight, DEFAULT_FONT_WEIGHT),
+            auto_adjust=args.size is None,
         )
     except Exception as e:
         await matcher.finish(format_error(e))
@@ -207,7 +203,11 @@ async def _(
     assert sticker_info is not None
 
     try:
-        image = await draw_sticker(sticker_info, text=text)
+        image = await draw_sticker(
+            sticker_info,
+            text=text,
+            auto_adjust=True,
+        )
     except Exception as e:
         await matcher.finish(format_error(e))
 

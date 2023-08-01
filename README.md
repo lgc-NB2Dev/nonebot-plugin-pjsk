@@ -150,6 +150,12 @@ plugins = [
 
 ## 📝 更新日志
 
+### 0.2.3
+
+- 限制了贴纸文本大小，以免 Bot 瞬间爆炸
+- 默认参数适应性调节 ([#14](https://github.com/Agnes4m/nonebot_plugin_pjsk/issues/14))
+- 参数 `--rotate` 改为提供角度值
+
 ### 0.2.2
 
 - 修改了 0.2.1 版的交互创建模式的触发方式

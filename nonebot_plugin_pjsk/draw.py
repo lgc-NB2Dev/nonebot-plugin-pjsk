@@ -1,6 +1,7 @@
 import asyncio
 from functools import partial
 from io import BytesIO
+from math import cos, sin
 from typing import (
     Any,
     Awaitable,
@@ -10,6 +11,7 @@ from typing import (
     Iterable,
     List,
     Optional,
+    Tuple,
     overload,
 )
 from typing_extensions import ParamSpec
@@ -26,7 +28,7 @@ from imagetext_py import (
     draw_text_multiline,
     text_size_multiline,
 )
-from numpy import rad2deg
+from numpy import deg2rad, rad2deg
 from PIL import Image
 from pil_utils import BuildImage
 from pil_utils.types import ColorType
@@ -50,6 +52,7 @@ DEFAULT_FONT_WEIGHT = 700
 DEFAULT_STROKE_WIDTH = 9
 DEFAULT_LINE_SPACING = 1.3
 
+CANVAS_SIZE = (296, 256)
 MAX_TEXT_IMAGE_SIZE = 2048
 
 
@@ -76,6 +79,14 @@ def hex_to_color(hex_color: str) -> Color:
     return Color.from_hex(hex_color)
 
 
+def calc_rotated_size(width: int, height: int, rotate_deg: float) -> Tuple[int, int]:
+    rotate_rad = deg2rad(rotate_deg)
+    return (
+        int(abs(width * cos(rotate_rad)) + abs(height * sin(rotate_rad))),
+        int(abs(width * sin(rotate_rad)) + abs(height * cos(rotate_rad))),
+    )
+
+
 async def render_text(
     text: str,
     color: str,
@@ -84,29 +95,45 @@ async def render_text(
     stoke_width: int,
     line_spacing: float,
     max_width: Optional[int] = None,
+    will_rotate: Optional[float] = None,
+    min_size: int = 8,
 ) -> Image.Image:
     font = ensure_font()
 
     text_lines = text.splitlines()
     padding = stoke_width
 
-    actual_size = await anyio.to_thread.run_sync(
-        partial(
-            text_size_multiline,
-            lines=text_lines,
-            size=font_size,
-            font=font,
-            line_spacing=line_spacing,
-            draw_emojis=True,
-        ),
-    )
-    if actual_size[0] > MAX_TEXT_IMAGE_SIZE or actual_size[1] > MAX_TEXT_IMAGE_SIZE:
+    while True:
+        actual_size = await anyio.to_thread.run_sync(
+            partial(
+                text_size_multiline,
+                lines=text_lines,
+                size=font_size,
+                font=font,
+                line_spacing=line_spacing,
+                draw_emojis=True,
+            ),
+        )
+        size = (
+            actual_size[0] + padding * 2,
+            actual_size[1] + padding * 2 + font_size // 2,  # 更多纵向 padding 防止文字被裁
+        )
+
+        if (not max_width) or font_size <= min_size:
+            break
+
+        rotated_width = (
+            size[0]
+            if (will_rotate is None)
+            else calc_rotated_size(*size, will_rotate)[0]
+        )
+        if rotated_width <= max_width:
+            break
+        font_size -= 1
+
+    if size[0] > MAX_TEXT_IMAGE_SIZE or size[1] > MAX_TEXT_IMAGE_SIZE:
         raise TextTooLargeError
 
-    size = (
-        actual_size[0] + padding * 2,
-        actual_size[1] + padding * 2 + font_size // 2,  # 更多纵向 padding 防止文字被裁
-    )
     canvas = Canvas(*size, Color(255, 255, 255, 0))
     await anyio.to_thread.run_sync(
         partial(
@@ -139,11 +166,10 @@ def paste_text_on_image(
     y: int,
     rotate: int,
 ) -> Image.Image:
-    target_size = (296, 256)
-    image = BuildImage(image).resize(target_size, keep_ratio=True, inside=True).image
+    image = BuildImage(image).resize(CANVAS_SIZE, keep_ratio=True, inside=True).image
 
-    text_bg = Image.new("RGBA", target_size, (255, 255, 255, 0))
-    text = text.rotate(-rad2deg(rotate / 10), resample=Image.BICUBIC, expand=True)
+    text_bg = Image.new("RGBA", CANVAS_SIZE, (255, 255, 255, 0))
+    text = text.rotate(rotate, resample=Image.BICUBIC, expand=True)
     text_bg.paste(text, (x - text.size[0] // 2, y - text.size[1] // 2), text)
 
     return Image.alpha_composite(image, text_bg)
@@ -168,8 +194,10 @@ async def draw_sticker(
     stroke_width: Optional[int] = None,
     line_spacing: Optional[float] = None,
     font_weight: Optional[int] = None,
+    auto_adjust: bool = False,  # noqa: FBT001
 ) -> Image.Image:
     sticker_img = await anyio.Path(RESOURCE_FOLDER / info.img).read_bytes()
+    rotate_deg = rotate or -rad2deg(info.default_text.r / 10)
     text_img = await render_text(
         text or info.default_text.text,
         info.color,
@@ -177,13 +205,15 @@ async def draw_sticker(
         font_weight or DEFAULT_FONT_WEIGHT,
         stroke_width or DEFAULT_STROKE_WIDTH,
         line_spacing or DEFAULT_LINE_SPACING,
+        max_width=CANVAS_SIZE[0] if auto_adjust else None,
+        will_rotate=rotate_deg,
     )
     return paste_text_on_image(
         Image.open(BytesIO(sticker_img)).convert("RGBA"),
         text_img,
         x or info.default_text.x,
         y or info.default_text.y,
-        rotate or info.default_text.r,
+        rotate_deg,
     )
 
 
