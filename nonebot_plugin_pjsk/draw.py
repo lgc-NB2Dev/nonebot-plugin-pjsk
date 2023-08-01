@@ -169,7 +169,7 @@ def paste_text_on_image(
     image = BuildImage(image).resize(CANVAS_SIZE, keep_ratio=True, inside=True).image
 
     text_bg = Image.new("RGBA", CANVAS_SIZE, (255, 255, 255, 0))
-    text = text.rotate(rotate, resample=Image.BICUBIC, expand=True)
+    text = text.rotate(-rotate, resample=Image.BICUBIC, expand=True)
     text_bg.paste(text, (x - text.size[0] // 2, y - text.size[1] // 2), text)
 
     return Image.alpha_composite(image, text_bg)
@@ -197,7 +197,6 @@ async def draw_sticker(
     auto_adjust: bool = False,  # noqa: FBT001
 ) -> Image.Image:
     sticker_img = await anyio.Path(RESOURCE_FOLDER / info.img).read_bytes()
-    rotate_deg = -(rotate or rad2deg(info.default_text.r / 10))
     text_img = await render_text(
         text or info.default_text.text,
         info.color,
@@ -206,14 +205,14 @@ async def draw_sticker(
         stroke_width or DEFAULT_STROKE_WIDTH,
         line_spacing or DEFAULT_LINE_SPACING,
         max_width=CANVAS_SIZE[0] if auto_adjust else None,
-        will_rotate=rotate_deg,
+        will_rotate=rotate,
     )
     return paste_text_on_image(
         Image.open(BytesIO(sticker_img)).convert("RGBA"),
         text_img,
         x or info.default_text.x,
         y or info.default_text.y,
-        rotate_deg,
+        rotate or rad2deg(info.default_text.r / 10),
     )
 
 

@@ -8,6 +8,7 @@ from nonebot.params import Arg, ArgPlainText, CommandArg, ShellCommandArgs
 from nonebot.rule import ArgumentParser, Namespace
 from nonebot.typing import T_State
 from nonebot_plugin_saa import Image, MessageFactory, MessageSegmentFactory, Text
+from numpy import rad2deg
 
 from .draw import (
     DEFAULT_FONT_WEIGHT,
@@ -42,7 +43,7 @@ cmd_generate_parser.add_argument(
 cmd_generate_parser.add_argument("-x", help="文字的中心 x 坐标")
 cmd_generate_parser.add_argument("-y", help="文字的中心 y 坐标")
 cmd_generate_parser.add_argument("-r", "--rotate", help="文字旋转的角度")
-cmd_generate_parser.add_argument("-s", "--size", help="文字的大小")
+cmd_generate_parser.add_argument("-s", "--size", help="文字的大小，不指定时会以默认大小为最大值自动调整")
 cmd_generate_parser.add_argument("-w", "--weight", help="文本粗细")
 cmd_generate_parser.add_argument("--stroke-width", help="文本描边宽度")
 cmd_generate_parser.add_argument("--line-spacing", help="文本行间距")
@@ -90,15 +91,15 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
     if not selected_sticker:
         await matcher.finish("没有找到对应 ID 的表情")
 
-    texts: Optional[List[str]] = args.text
+    texts: List[str] = args.text
     default_text = selected_sticker.default_text
     try:
         image = await draw_sticker(
             selected_sticker,
-            text=" ".join(texts) if texts else default_text.text,
+            text=" ".join(texts),  # if texts else default_text.text,
             x=resolve_value(args.x, default_text.x),
             y=resolve_value(args.y, default_text.y),
-            rotate=resolve_value(args.rotate, default_text.r),
+            rotate=resolve_value(args.rotate, rad2deg(default_text.r / 10)),
             font_size=resolve_value(args.size, default_text.s),
             stroke_width=resolve_value(args.stroke_width, DEFAULT_STROKE_WIDTH),
             line_spacing=resolve_value(args.line_spacing, DEFAULT_LINE_SPACING, float),
