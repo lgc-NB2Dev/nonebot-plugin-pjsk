@@ -13,6 +13,7 @@ from .draw import (
     DEFAULT_FONT_WEIGHT,
     DEFAULT_LINE_SPACING,
     DEFAULT_STROKE_WIDTH,
+    TextTooLargeError,
     draw_sticker,
     get_all_characters,
     get_character_stickers,
@@ -59,6 +60,20 @@ cmd_generate = on_shell_command(
 )
 
 
+async def handle_exit(matcher: Matcher, arg: str):
+    if arg in ("0", "q", "e", "quit", "exit", "退出"):
+        await matcher.finish("已退出交互创建模式")
+
+
+def format_error(error: Exception) -> str:
+    if isinstance(error, ResolveValueError):
+        return f"提供的参数值 `{error.args[0]}` 解析出错"
+    if isinstance(error, TextTooLargeError):
+        return "你给的参数是不是有点太逆天了 😅"
+    logger.opt(exception=error).error("Error occurred while drawing sticker")
+    return "生成表情时出错，请检查后台日志"
+
+
 # failed to parse args
 @cmd_generate.handle()
 async def _(matcher: Matcher, foo: ParserExit = ShellCommandArgs()):
@@ -94,18 +109,10 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
             line_spacing=resolve_value(args.line_spacing, DEFAULT_LINE_SPACING, float),
             font_weight=resolve_value(args.weight, DEFAULT_FONT_WEIGHT),
         )
-    except ResolveValueError as e:
-        await matcher.finish(f"提供的参数值 `{e.args[0]}` 解析出错")
-    except Exception:
-        logger.exception("Error occurred while drawing sticker")
-        await matcher.finish("生成表情时出错，请检查后台日志")
+    except Exception as e:
+        await matcher.finish(format_error(e))
 
     await MessageFactory([Image(i2b(image))]).finish(reply=True)
-
-
-async def handle_exit(matcher: Matcher, arg: str):
-    if arg in ("0", "q", "e", "quit", "exit", "退出"):
-        await matcher.finish("已退出交互创建模式")
 
 
 # interact mode or sticker list
@@ -201,8 +208,7 @@ async def _(
 
     try:
         image = await draw_sticker(sticker_info, text=text)
-    except Exception:
-        logger.exception("Error occurred while drawing sticker")
-        await matcher.finish("生成表情时出错，请检查后台日志")
+    except Exception as e:
+        await matcher.finish(format_error(e))
 
     await MessageFactory([Image(i2b(image))]).finish(reply=True)

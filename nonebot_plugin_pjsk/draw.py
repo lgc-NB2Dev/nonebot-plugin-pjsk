@@ -50,6 +50,12 @@ DEFAULT_FONT_WEIGHT = 700
 DEFAULT_STROKE_WIDTH = 9
 DEFAULT_LINE_SPACING = 1.3
 
+MAX_TEXT_IMAGE_SIZE = 2048
+
+
+class TextTooLargeError(ValueError):
+    pass
+
 
 def ensure_font() -> Font:
     global FONT
@@ -77,6 +83,7 @@ async def render_text(
     font_weight: int,
     stoke_width: int,
     line_spacing: float,
+    max_width: Optional[int] = None,
 ) -> Image.Image:
     font = ensure_font()
 
@@ -93,11 +100,13 @@ async def render_text(
             draw_emojis=True,
         ),
     )
+    if actual_size[0] > MAX_TEXT_IMAGE_SIZE or actual_size[1] > MAX_TEXT_IMAGE_SIZE:
+        raise TextTooLargeError
+
     size = (
         actual_size[0] + padding * 2,
         actual_size[1] + padding * 2 + font_size // 2,  # 更多纵向 padding 防止文字被裁
     )
-
     canvas = Canvas(*size, Color(255, 255, 255, 0))
     await anyio.to_thread.run_sync(
         partial(
