@@ -32,9 +32,9 @@ cmd_sticker_list = on_command(
 cmd_generate_parser = ArgumentParser(
     "pjsk",
     description="Project Sekai 表情生成",
-    epilog="Tip：大部分有默认值的数值参数都可以用 `^` 开头指定相对于默认值的偏移量",
+    epilog="Tip 1：大部分有默认值的数值参数都可以用 `^` 开头指定相对于默认值的偏移量\nTip 2：不提供任何参数时会进入交互创建模式",
 )
-cmd_generate_parser.add_argument("text", nargs="*", help="添加的文字，为空时进入交互模式")
+cmd_generate_parser.add_argument("text", nargs="*", help="添加的文字，为空时使用默认值")
 cmd_generate_parser.add_argument(
     "-i",
     "--id",
