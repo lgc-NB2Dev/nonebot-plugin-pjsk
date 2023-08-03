@@ -29,10 +29,9 @@ from imagetext_py import (
     TextAlign,
     draw_text_multiline,
     text_size_multiline,
-    text_wrap,
 )
 from numpy import deg2rad, rad2deg
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from .config import config
 from .resource import (
@@ -124,7 +123,6 @@ async def render_text(
     max_width: Optional[int] = None,
     will_rotate: Optional[float] = None,
     min_size: int = 8,
-    error_when_too_large: bool = True,  # noqa: FBT001
 ) -> Image.Image:
     font = ensure_font()
 
@@ -159,9 +157,7 @@ async def render_text(
             break
         font_size -= 1
 
-    if error_when_too_large and (
-        size[0] > MAX_TEXT_IMAGE_SIZE or size[1] > MAX_TEXT_IMAGE_SIZE
-    ):
+    if size[0] > MAX_TEXT_IMAGE_SIZE or size[1] > MAX_TEXT_IMAGE_SIZE:
         raise TextTooLargeError
 
     canvas = Canvas(*size, Color(255, 255, 255, 0))
@@ -237,11 +233,12 @@ async def draw_sticker(
     font_weight: Optional[int] = None,
     auto_adjust: bool = False,  # noqa: FBT001
 ) -> Image.Image:
+    default_text = info.default_text
     sticker_img = await anyio.Path(RESOURCE_FOLDER / info.img).read_bytes()
     text_img = await render_text(
-        text or info.default_text.text,
+        text or default_text.text,
         info.color,
-        font_size or info.default_text.s,
+        font_size or default_text.s,
         font_weight or DEFAULT_FONT_WEIGHT,
         stroke_width or DEFAULT_STROKE_WIDTH,
         line_spacing or DEFAULT_LINE_SPACING,
@@ -251,9 +248,9 @@ async def draw_sticker(
     return paste_text_on_image(
         Image.open(BytesIO(sticker_img)).convert("RGBA"),
         text_img,
-        x or info.default_text.x,
-        y or info.default_text.y,
-        rotate or rad2deg(info.default_text.r / 10),
+        x or default_text.x,
+        y or default_text.y,
+        rotate or rad2deg(default_text.r / 10),
     )
 
 
@@ -297,48 +294,43 @@ async def render_summary_from_tasks(
     )
 
 
+def wrap_line(line: str, font: ImageFont.FreeTypeFont, width: int) -> List[str]:
+    if font.getlength(line) <= width:
+        return [line]
+
+    wrapped: List[str] = []
+    tail = ""
+    while font.getlength(line) > width:
+        tail = line[-1] + tail
+        line = line[:-1]
+    wrapped.append(line)
+    wrapped.extend(wrap_line(tail, font, width))
+    return wrapped
+
+
 async def render_help_image(text: str) -> Image.Image:
-    font = ensure_font()
+    width = 900
     font_size = 24
-    line_spacing = 1.2
-    width = 950
     padding = 24
+    font = ImageFont.truetype(str(FONT_PATHS[-1]), font_size)
 
-    # 这个空行还有缩进的处理，实属无奈
-    wrapped = [
-        x[1:] if x.startswith(">") else x
-        for x in itertools.chain.from_iterable(
-            (
-                text_wrap(
-                    f">{x}" if x.startswith(" ") else x,
-                    width - padding * 2,
-                    font_size,
-                    font,
-                )
-                if x
-                else " "
-            )
-            for x in text.splitlines()
-        )
-    ]
-    size = text_size_multiline(wrapped, font_size, font, line_spacing)
-
-    canvas = Canvas(width, size[1] + padding * 2, hex_to_color(ONE_DARK_BLACK))
-    draw_text_multiline(
-        canvas,
-        wrapped,
-        padding,
-        padding,
-        0,
-        0,
-        400,
-        font_size,
-        font,
-        Paint(hex_to_color(ONE_DARK_WHITE)),
-        line_spacing,
+    warped_lines: List[str] = list(
+        itertools.chain.from_iterable(
+            wrap_line(line, font, width - padding * 2) for line in text.split("\n")
+        ),
     )
+    text = "\n".join(warped_lines)
 
-    return canvas.to_image()
+    # 什么傻逼设计，为什么要新建一个 ImageDraw 才能拿多行高度
+    empty_draw = ImageDraw.Draw(Image.new("1", (1, 1)))
+    text_bbox = empty_draw.multiline_textbbox((0, 0), text, font=font)
+    text_height = text_bbox[3] - text_bbox[1]
+
+    image = Image.new("RGBA", (width, text_height + padding * 2), ONE_DARK_BLACK)
+    draw = ImageDraw.Draw(image)
+    draw.multiline_text((padding, padding), text, fill=ONE_DARK_WHITE, font=font)
+
+    return image
 
 
 @overload

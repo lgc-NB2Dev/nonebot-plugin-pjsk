@@ -1,9 +1,13 @@
+from typing import Set
+
 from imagetext_py import EmojiSource
 from nonebot import get_driver
 from pydantic import BaseModel, validator
 
 
 class ConfigModel(BaseModel):
+    command_start: Set[str]
+
     pjsk_assets_prefix: str = (
         "https://raw.gitmirror.com/TheOriginalAyaka/sekai-stickers/main/"
     )

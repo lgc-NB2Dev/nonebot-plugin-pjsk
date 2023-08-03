@@ -58,7 +58,7 @@ cmd_generate = on_shell_command(
 HELP = (
     "Project Sekai 表情生成\n"
     "\n"
-    f"{cmd_generate_parser.format_help()}\n"
+    f"{cmd_generate_parser.format_help().strip()}\n"
     "\n"
     "Tips：\n"
     "- 大部分有默认值的数值参数都可以用 ^ 开头指定相对于默认值的偏移量\n"
@@ -66,12 +66,17 @@ HELP = (
 )
 
 
+def remove_cmd_prefix(s: str) -> str:
+    pfx = next((x for x in config.command_start if x and s.startswith(x)), None)
+    return s[len(pfx) :] if pfx else s
+
+
 async def handle_exit(matcher: Matcher, arg: str):
     if arg in ("0", "q", "e", "quit", "exit", "退出"):
         await matcher.finish("已退出交互创建模式")
 
 
-def format_error(error: Exception) -> str:
+def format_draw_error(error: Exception) -> str:
     if isinstance(error, ResolveValueError):
         return f"提供的参数值 `{error.args[0]}` 解析出错"
     if isinstance(error, TextTooLargeError):
@@ -127,7 +132,7 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
             auto_adjust=args.size is None,
         )
     except Exception as e:
-        await matcher.finish(format_error(e))
+        await matcher.finish(format_draw_error(e))
 
     await MessageFactory([Image(i2b(image))]).finish(reply=True)
 
@@ -135,7 +140,7 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
 # interact mode or sticker list
 @cmd_sticker_list.handle()
 async def _(matcher: Matcher, arg: Message = CommandArg()):
-    if arg.extract_plain_text().strip():
+    if remove_cmd_prefix(arg.extract_plain_text()).strip():
         matcher.set_arg("character", arg)
 
 
@@ -167,7 +172,7 @@ async def _(matcher: Matcher, state: T_State):
 @cmd_generate.got("character")
 @cmd_sticker_list.got("character")
 async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character")):
-    character = arg_msg.extract_plain_text().strip()
+    character = remove_cmd_prefix(arg_msg.extract_plain_text()).strip()
     await handle_exit(matcher, character)
 
     interact = state.get("interact", True)
@@ -206,7 +211,7 @@ async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character"
 # below are interact mode handlers
 @cmd_generate.got("sticker_id")
 async def _(matcher: Matcher, arg: str = ArgPlainText("sticker_id")):
-    arg = arg.strip()
+    arg = remove_cmd_prefix(arg).strip()
     await handle_exit(matcher, arg)
 
     if not select_or_get_random(arg or None):  # 上面传过来的空消息转 None 获取随机表情
@@ -220,16 +225,15 @@ async def _(
     sticker_id: str = ArgPlainText(),
     text: str = ArgPlainText(),
 ):
+    sticker_id = remove_cmd_prefix(sticker_id).strip()
+    text = remove_cmd_prefix(text).strip()
+
     sticker_info = select_or_get_random(sticker_id)
     assert sticker_info is not None
 
     try:
-        image = await draw_sticker(
-            sticker_info,
-            text=text,
-            auto_adjust=True,
-        )
+        image = await draw_sticker(sticker_info, text=text, auto_adjust=True)
     except Exception as e:
-        await matcher.finish(format_error(e))
+        await matcher.finish(format_draw_error(e))
 
     await MessageFactory([Image(i2b(image))]).finish(reply=True)
