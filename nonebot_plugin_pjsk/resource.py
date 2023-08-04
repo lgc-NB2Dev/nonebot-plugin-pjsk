@@ -22,8 +22,7 @@ if CACHE_FOLDER.exists():
 CACHE_FOLDER.mkdir(parents=True)
 
 FONT_PATHS = [
-    FONT_FOLDER / "YurukaStd.ttf",
-    FONT_FOLDER / "ShangShouFangTangTi.ttf",
+    FONT_FOLDER / "YurukaFangTang.ttf",
 ]
 
 for _folder in (DATA_FOLDER, FONT_FOLDER, RESOURCE_FOLDER):
