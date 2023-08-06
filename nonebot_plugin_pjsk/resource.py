@@ -50,6 +50,12 @@ class StickerInfo(BaseModel):
 LOADED_STICKER_INFO: List[StickerInfo] = []
 
 
+def sort_stickers():
+    LOADED_STICKER_INFO.sort(key=lambda x: x.character.lower())
+    for i, x in enumerate(LOADED_STICKER_INFO, 1):
+        x.sticker_id = str(i)
+
+
 @overload
 def select_or_get_random(sticker_id: None = None) -> StickerInfo:
     ...
@@ -93,11 +99,12 @@ async def load_sticker_info():
     except Exception as e:
         if not (await path.exists()):
             raise
-        logger.warning(f"Failed to load sticker information, using cached data\n{e!r}")
+        logger.warning(f"Failed to load sticker information, using cached data: {e!r}")
         loaded_text = await path.read_text(encoding="u8")
 
     LOADED_STICKER_INFO.clear()
     LOADED_STICKER_INFO.extend(parse_raw_as(List[StickerInfo], loaded_text))
+    sort_stickers()
 
 
 async def check_and_download_stickers():

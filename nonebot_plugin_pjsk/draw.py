@@ -376,12 +376,19 @@ def use_image_cache(
 
 
 async def render_all_characters() -> Image.Image:
-    characters: Dict[str, StickerInfo] = {}
+    character_dict: Dict[str, StickerInfo] = {}
     for info in LOADED_STICKER_INFO:
-        if info.character not in characters:
-            characters[info.character] = info
+        character = info.character
+        if character not in character_dict:
+            character = (
+                character
+                if character[0].isupper()
+                else character[0].upper() + character[1:]
+            )
+            character_dict[character] = info
+
     return await render_summary_from_tasks(
-        draw_sticker(info, info.character.capitalize()) for info in characters.values()
+        draw_sticker(info, character) for character, info in character_dict.items()
     )
 
 
