@@ -112,7 +112,7 @@ plugins = [
 
 ## ⚙️ 配置
 
-插件开箱即用，如无需要则无须配置,[Emoji来源](https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217) .
+插件开箱即用，如无需要则无须配置,[Emoji 来源](https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217) .
 
 ```python
 pjsk_emoji_source = "Apple" # 来源，可选值见上
@@ -165,6 +165,16 @@ pjsk_help_as_image: bool = True
 - [爱发电](https://afdian.net/a/agnes_digital)
 
 ## 📝 更新日志
+
+### 0.2.7
+
+- 修复参数为 `0` 时不生效的 Bug
+- 现在可以关闭回复消息发送者的特性了
+- 命令参数调整：
+  - 删除 `--weight` 参数，因为没有实际意义
+  - `--rotate` 参数可以接受小数了
+  - `--stroke-width` 参数添加简写 `-W`
+  - `--line-spacing` 参数添加简写 `-C`
 
 ### 0.2.6
 

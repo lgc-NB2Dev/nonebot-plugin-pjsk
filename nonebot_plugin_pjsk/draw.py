@@ -41,7 +41,7 @@ from .resource import (
     RESOURCE_FOLDER,
     StickerInfo,
 )
-from .utils import split_list
+from .utils import qor, split_list
 
 P = ParamSpec("P")
 ColorType = Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]
@@ -190,7 +190,7 @@ def paste_text_on_image(
     text: Image.Image,
     x: int,
     y: int,
-    rotate: int,
+    rotate: float,
 ) -> Image.Image:
     image = resize_sticker(image, CANVAS_SIZE)
 
@@ -226,7 +226,7 @@ async def draw_sticker(
     text: Optional[str] = None,
     x: Optional[int] = None,
     y: Optional[int] = None,
-    rotate: Optional[int] = None,
+    rotate: Optional[float] = None,
     font_size: Optional[int] = None,
     stroke_width: Optional[int] = None,
     line_spacing: Optional[float] = None,
@@ -236,21 +236,21 @@ async def draw_sticker(
     default_text = info.default_text
     sticker_img = await anyio.Path(RESOURCE_FOLDER / info.img).read_bytes()
     text_img = await render_text(
-        text or default_text.text,
+        qor(text, default_text.text),
         info.color,
-        font_size or default_text.s,
-        font_weight or DEFAULT_FONT_WEIGHT,
-        stroke_width or DEFAULT_STROKE_WIDTH,
-        line_spacing or DEFAULT_LINE_SPACING,
+        qor(font_size, default_text.s),
+        qor(font_weight, DEFAULT_FONT_WEIGHT),
+        qor(stroke_width, DEFAULT_STROKE_WIDTH),
+        qor(line_spacing, DEFAULT_LINE_SPACING),
         max_width=CANVAS_SIZE[0] if auto_adjust else None,
         will_rotate=rotate,
     )
     return paste_text_on_image(
         Image.open(BytesIO(sticker_img)).convert("RGBA"),
         text_img,
-        x or default_text.x,
-        y or default_text.y,
-        rotate or rad2deg(default_text.r / 10),
+        qor(x, default_text.x),
+        qor(y, default_text.y),
+        rotate if rotate is not None else rad2deg(default_text.r / 10),
     )
 
 

@@ -1,12 +1,25 @@
 from asyncio import Semaphore
 from enum import Enum, auto
+from typing import (
+    Any,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
+
 from aiohttp import ClientSession
-from typing import Any, Iterable, List, Literal, Optional, Type, TypeVar, overload
 
 from .config import config
 
 T = TypeVar("T")
 TN = TypeVar("TN", int, float)
+TA = TypeVar("TA")
+TB = TypeVar("TB")
 
 
 class ResponseType(Enum):
@@ -100,3 +113,7 @@ def resolve_value(
         return expected_type(value)  # type: ignore pylance 抽风
     except Exception as e:
         raise ResolveValueError(value) from e
+
+
+def qor(a: Optional[TA], b: TB) -> Union[TA, TB]:
+    return a if a is not None else b
