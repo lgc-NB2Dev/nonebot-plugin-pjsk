@@ -250,7 +250,7 @@ async def draw_sticker(
         text_img,
         qor(x, default_text.x),
         qor(y, default_text.y),
-        rotate if rotate is not None else rad2deg(default_text.r / 10),
+        rotate if rotate is not None else rad2deg(default_text.r / 10),  # 惰性求值
     )
 
 

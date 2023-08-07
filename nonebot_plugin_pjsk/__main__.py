@@ -123,7 +123,11 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
             text=" ".join(texts),  # if texts else default_text.text,
             x=resolve_value(args.x, default_text.x),
             y=resolve_value(args.y, default_text.y),
-            rotate=resolve_value(args.rotate, rad2deg(default_text.r / 10), float),
+            rotate=(  # 惰性求值
+                args.rotate
+                if args.rotate is None
+                else resolve_value(args.rotate, rad2deg(default_text.r / 10), float)
+            ),
             font_size=resolve_value(args.size, default_text.s),
             stroke_width=resolve_value(args.stroke_width, DEFAULT_STROKE_WIDTH),
             line_spacing=resolve_value(args.line_spacing, DEFAULT_LINE_SPACING, float),
