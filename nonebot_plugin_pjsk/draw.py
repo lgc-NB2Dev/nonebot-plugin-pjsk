@@ -309,7 +309,7 @@ def wrap_line(line: str, font: ImageFont.FreeTypeFont, width: int) -> List[str]:
 
 
 async def render_help_image(text: str) -> Image.Image:
-    width = 900
+    width = 1130
     font_size = 24
     padding = 24
     font = ImageFont.truetype(str(FONT_PATHS[-1]), font_size)

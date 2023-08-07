@@ -112,18 +112,15 @@ plugins = [
 
 ## ⚙️ 配置
 
-插件开箱即用，如无需要则无须配置,[Emoji 来源](https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217) .
+插件开箱即用，所有配置项皆为可选。请**按需添加**下面的配置项到 `.env` 文件中
 
-```python
-pjsk_emoji_source = "Apple" # 来源，可选值见上
-
-# 代理设置
-pjsk_assets_prefix = "https://raw.gitmirror.com/TheOriginalAyaka/sekai-stickers/main/"
-pjsk_repo_prefix = "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/"
-
-# 图片发送帮助信息
-pjsk_help_as_image: bool = True
-```
+|        配置项        | 必填 | 默认值  |                                                              说明                                                              |
+| :------------------: | :--: | :-----: | :----------------------------------------------------------------------------------------------------------------------------: |
+| `PJSK_ASSETS_PREFIX` |  否  |   ...   |                          TheOriginalAyaka/sekai-stickers 仓库 GitHubUserContent 地址，默认为国内镜像                           |
+|  `PJSK_REPO_PREFIX`  |  否  |   ...   |                                         本仓库 GitHubUserContent 地址，默认为国内镜像                                          |
+| `PJSK_EMOJI_SOURCE`  |  否  | `Apple` | Emoji 来源，可选值见 [这里](https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217) |
+| `PJSK_HELP_AS_IMAGE` |  否  | `True`  |                                                  是否将帮助信息渲染为图片发送                                                  |
+|     `PJSK_REPLY`     |  否  | `True`  |                                                       是否回复消息发送者                                                       |
 
 ## 🎉 使用
 

@@ -14,13 +14,8 @@ class ConfigModel(BaseModel):
     pjsk_repo_prefix: str = "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/"
 
     pjsk_emoji_source: str = "Apple"
-    """Emoji 来源，可选值见 https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217"""
-
     pjsk_help_as_image: bool = True
-    """是否将帮助信息作为图片发送"""
-
     pjsk_reply: bool = True
-    """是否回复消息发送者"""
 
     @validator("pjsk_assets_prefix", "pjsk_repo_prefix")
     def check_url(cls, v):  # noqa: N805
