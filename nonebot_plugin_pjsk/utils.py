@@ -1,8 +1,7 @@
 from asyncio import Semaphore
 from enum import Enum, auto
+from aiohttp import ClientSession
 from typing import Any, Iterable, List, Literal, Optional, Type, TypeVar, overload
-
-from httpx import AsyncClient
 
 from .config import config
 
@@ -50,14 +49,14 @@ async def async_request(
 ) -> Any:
     if not url.startswith(("http://", "https://")):
         url = f"{prefix}{url}"
-    async with AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        if response_type == ResponseType.JSON:
-            return response.json()
-        if response_type == ResponseType.TEXT:
-            return response.text
-        return response.content
+    async with ClientSession() as session:
+        async with session.get(url) as response:
+            response.raise_for_status()
+            if response_type == ResponseType.JSON:
+                return await response.json()
+            if response_type == ResponseType.TEXT:
+                return await response.text()
+            return await response.read()
 
 
 def with_semaphore(semaphore: Semaphore):

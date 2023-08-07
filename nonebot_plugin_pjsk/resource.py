@@ -90,7 +90,7 @@ async def check_and_download_font():
 
 
 async def load_sticker_info():
-    logger.info("Updating sticker information")
+    logger.debug("Updating sticker information")
 
     path = anyio.Path(STICKER_INFO_CACHE)
     try:
@@ -116,10 +116,10 @@ async def check_and_download_stickers():
         if not (await (dir_name := path.parent).exists()):
             await dir_name.mkdir(parents=True, exist_ok=True)
 
-        logger.opt(colors=True).info(f"Downloading sticker <y>{path.name}</y>")
+        logger.opt(colors=True).debug(f"Downloading sticker <y>{path.name}</y>")
         await path.write_bytes(await async_request(f"public/img/{path_str}"))
 
-    logger.info("Checking and downloading sticker assets")
+    logger.debug("Checking and downloading sticker assets")
     tasks: List[Coroutine] = [
         download(sticker_info.img)
         for sticker_info in LOADED_STICKER_INFO
@@ -134,7 +134,7 @@ async def check_and_download_resource():
 
 
 async def prepare_resource():
-    logger.info("Checking and downloading resources")
+    logger.debug("Checking and downloading resources")
     await asyncio.gather(
         check_and_download_resource(),
         check_and_download_font(),

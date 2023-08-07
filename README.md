@@ -112,8 +112,18 @@ plugins = [
 
 ## ⚙️ 配置
 
-见 [config.py](./nonebot_plugin_pjsk/config.py) 文件  
-插件开箱即用，如无需要则无须配置
+插件开箱即用，如无需要则无须配置,[Emoji来源](https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217) .
+
+```python
+pjsk_emoji_source = "Apple" # 来源，可选值见上
+
+# 代理设置
+pjsk_assets_prefix = "https://raw.gitmirror.com/TheOriginalAyaka/sekai-stickers/main/"
+pjsk_repo_prefix = "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/"
+
+# 图片发送帮助信息
+pjsk_help_as_image: bool = True
+```
 
 ## 🎉 使用
 

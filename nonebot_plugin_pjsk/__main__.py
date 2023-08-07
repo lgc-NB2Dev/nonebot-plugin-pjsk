@@ -98,7 +98,7 @@ async def _(matcher: Matcher, foo: ParserExit = ShellCommandArgs()):
             except Exception:
                 logger.exception("Error occurred while rendering help image")
                 await matcher.finish("生成帮助图片时出错，请检查后台日志")
-            await MessageFactory([Image(img)]).finish(reply=True)
+            await MessageFactory([Image(img)]).finish(reply=config.pjsk_reply)
 
         await matcher.finish(HELP)
 
@@ -134,7 +134,7 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
     except Exception as e:
         await matcher.finish(format_draw_error(e))
 
-    await MessageFactory([Image(i2b(image))]).finish(reply=True)
+    await MessageFactory([Image(i2b(image))]).finish(reply=config.pjsk_reply)
 
 
 # interact mode or sticker list
@@ -165,7 +165,7 @@ async def _(matcher: Matcher, state: T_State):
         await matcher.finish("获取角色列表图片出错，请检查后台日志")
 
     factory = MessageFactory([Image(image), Text(tip_text)])
-    await (factory.send if interact else factory.finish)(reply=True)
+    await (factory.send if interact else factory.finish)(reply=config.pjsk_reply)
 
 
 # sticker id list
@@ -205,7 +205,7 @@ async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character"
         segments.append(Text("请发送你要生成表情的 ID"))
 
     factory = MessageFactory(segments)
-    await (factory.send if interact else factory.finish)(reply=True)
+    await (factory.send if interact else factory.finish)(reply=config.pjsk_reply)
 
 
 # below are interact mode handlers
@@ -236,4 +236,4 @@ async def _(
     except Exception as e:
         await matcher.finish(format_draw_error(e))
 
-    await MessageFactory([Image(i2b(image))]).finish(reply=True)
+    await MessageFactory([Image(i2b(image))]).finish(reply=config.pjsk_reply)
