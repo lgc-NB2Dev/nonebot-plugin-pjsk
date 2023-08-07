@@ -99,7 +99,9 @@ async def load_sticker_info():
     except Exception as e:
         if not (await path.exists()):
             raise
-        logger.warning(f"Failed to load sticker information, using cached data: {e!r}")
+        logger.warning(
+            f"Failed to download sticker information, using cached data: {e!r}",
+        )
         loaded_text = await path.read_text(encoding="u8")
 
     LOADED_STICKER_INFO.clear()
@@ -116,7 +118,7 @@ async def check_and_download_stickers():
         if not (await (dir_name := path.parent).exists()):
             await dir_name.mkdir(parents=True, exist_ok=True)
 
-        logger.opt(colors=True).debug(f"Downloading sticker <y>{path.name}</y>")
+        logger.opt(colors=True).info(f"Downloading sticker <y>{path.name}</y>")
         await path.write_bytes(await async_request(f"public/img/{path_str}"))
 
     logger.debug("Checking and downloading sticker assets")
