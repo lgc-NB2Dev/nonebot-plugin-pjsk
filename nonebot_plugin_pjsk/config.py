@@ -29,6 +29,7 @@ class ConfigModel(BaseModel):
     def check_emoji_source(cls, v):  # noqa: N805
         if not getattr(EmojiSource, v, None):
             raise ValueError("Invalid emoji source")
+        return v
 
 
 config: ConfigModel = ConfigModel.parse_obj(get_driver().config.dict())
