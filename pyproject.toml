@@ -13,6 +13,8 @@ dependencies = [
     "aiohttp>=3.8.5",
     "numpy>=1.25.1",
     "anyio>=3.7.1",
+    "pillow>=9.0.0",
+    "pillow<10.0.0",
 ]
 requires-python = ">=3.9,<4.0"
 keywords = ["pjsk", "nonebot2", "plugin"]
