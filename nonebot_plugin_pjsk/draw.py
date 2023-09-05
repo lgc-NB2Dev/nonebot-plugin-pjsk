@@ -23,7 +23,6 @@ from imagetext_py import (
     Canvas,
     Color,
     EmojiOptions,
-    EmojiSource,
     Font,
     Paint,
     TextAlign,
@@ -36,7 +35,7 @@ from PIL import Image, ImageDraw, ImageFont
 from .config import config
 from .resource import (
     CACHE_FOLDER,
-    FONT_PATHS,
+    FONT_PATH,
     LOADED_STICKER_INFO,
     RESOURCE_FOLDER,
     StickerInfo,
@@ -71,11 +70,8 @@ def ensure_font() -> Font:
     global FONT
     if not FONT:
         FONT = Font(
-            str(FONT_PATHS[0]),
-            [str(x) for x in FONT_PATHS[1:]],
-            emoji_options=EmojiOptions(
-                source=getattr(EmojiSource, config.pjsk_emoji_source),
-            ),
+            str(FONT_PATH),
+            emoji_options=EmojiOptions(source=config.pjsk_emoji_source),
         )
     return FONT
 
@@ -329,7 +325,7 @@ async def render_help_image(text: str) -> Image.Image:
     width = 1120
     font_size = 24
     padding = 24
-    font = ImageFont.truetype(str(FONT_PATHS[-1]), font_size)
+    font = ImageFont.truetype(str(FONT_PATH), font_size)
 
     warped_lines: List[str] = list(
         itertools.chain.from_iterable(

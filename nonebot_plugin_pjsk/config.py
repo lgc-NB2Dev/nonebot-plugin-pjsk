@@ -21,7 +21,7 @@ class ConfigModel(BaseModel):
         "https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
     ]
 
-    pjsk_emoji_source: str = "Apple"
+    pjsk_emoji_source: EmojiSource = EmojiSource.Apple
     pjsk_help_as_image: bool = True
     pjsk_reply: bool = True
     pjsk_sticker_format: str = "PNG"
@@ -41,13 +41,12 @@ class ConfigModel(BaseModel):
             raise TypeError("Must be a list of str")
         return [check(url) for url in v]
 
-    @validator("pjsk_emoji_source")
+    @validator("pjsk_emoji_source", pre=True)
     def check_emoji_source(cls, v):  # noqa: N805
         try:
-            getattr(EmojiSource, v)
+            return getattr(EmojiSource, v)
         except AttributeError as e:
             raise ValueError("Invalid emoji source") from e
-        return v
 
 
 config: ConfigModel = ConfigModel.parse_obj(get_driver().config.dict())

@@ -21,9 +21,7 @@ if CACHE_FOLDER.exists():
     shutil.rmtree(CACHE_FOLDER)
 CACHE_FOLDER.mkdir(parents=True)
 
-FONT_PATHS = [
-    FONT_FOLDER / "YurukaFangTang.ttf",
-]
+FONT_PATH = FONT_FOLDER / "YurukaFangTang.ttf"
 
 for _folder in (DATA_FOLDER, FONT_FOLDER, RESOURCE_FOLDER):
     if not _folder.exists():
@@ -84,10 +82,11 @@ async def check_and_download_font():
 
         logger.opt(colors=True).info(f"Successfully downloaded font <y>{font_name}</y>")
 
-    tasks: List[Coroutine] = [
-        download(path.name) for path in FONT_PATHS if not path.exists()
-    ]
-    await asyncio.gather(*tasks)
+    # tasks: List[Coroutine] = [
+    #     download(path.name) for path in FONT_PATHS if not path.exists()
+    # ]
+    # await asyncio.gather(*tasks)
+    await download(FONT_PATH.name)
 
 
 async def load_sticker_info():
