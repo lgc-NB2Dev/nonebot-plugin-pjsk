@@ -114,13 +114,16 @@ plugins = [
 
 插件开箱即用，所有配置项皆为可选。请**按需添加**下面的配置项到 `.env` 文件中
 
-|        配置项        | 必填 | 默认值  |                                                              说明                                                              |
-| :------------------: | :--: | :-----: | :----------------------------------------------------------------------------------------------------------------------------: |
-| `PJSK_ASSETS_PREFIX` |  否  |   ...   |                          TheOriginalAyaka/sekai-stickers 仓库 GitHubUserContent 地址，默认为国内镜像                           |
-|  `PJSK_REPO_PREFIX`  |  否  |   ...   |                                         本仓库 GitHubUserContent 地址，默认为国内镜像                                          |
-| `PJSK_EMOJI_SOURCE`  |  否  | `Apple` | Emoji 来源，可选值见 [这里](https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217) |
-| `PJSK_HELP_AS_IMAGE` |  否  | `True`  |                                                  是否将帮助信息渲染为图片发送                                                  |
-|     `PJSK_REPLY`     |  否  | `True`  |                                                       是否回复消息发送者                                                       |
+|        配置项         | 必填 | 默认值  |                                                              说明                                                              |
+| :-------------------: | :--: | :-----: | :----------------------------------------------------------------------------------------------------------------------------: |
+| `PJSK_ASSETS_PREFIX`  |  否  |   ...   |                                TheOriginalAyaka/sekai-stickers 仓库 GitHubUserContent 地址列表                                 |
+|  `PJSK_REPO_PREFIX`   |  否  |   ...   |                                               本仓库 GitHubUserContent 地址列表                                                |
+|  `PJSK_EMOJI_SOURCE`  |  否  | `Apple` | Emoji 来源，可选值见 [这里](https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217) |
+| `PJSK_HELP_AS_IMAGE`  |  否  | `True`  |                                                  是否将帮助信息渲染为图片发送                                                  |
+|     `PJSK_REPLY`      |  否  | `True`  |                                                       是否回复消息发送者                                                       |
+|   `PJSK_REQ_RETRY`    |  否  |   `2`   |                                                   插件请求 URL 时的重试次数                                                    |
+|   `PJSK_REQ_PROXY`    |  否  | `None`  |                                                    插件下载资源时使用的代理                                                    |
+| `PJSK_STICKER_FORMAT` |  否  |  `PNG`  |                     插件保存生成的表情所用的格式，如生成的表情出现底色不为透明的情况请尝试将此项改为 `GIF`                     |
 
 ## 🎉 使用
 
@@ -162,6 +165,18 @@ plugins = [
 - [爱发电](https://afdian.net/a/agnes_digital)
 
 ## 📝 更新日志
+
+### 0.2.9
+
+- 指令参数增加与变更：
+  - 修改 `--line-spacing` 参数简写为 `-S`
+  - 增加 `--stroke-color`（`-C`）参数
+  - 增加 `--font-color`（`-c`）参数
+  - 增加 `--format`（`-f`）参数
+- 配置项增加与变更：
+  - 增加 `PJSK_REQ_RETRY`、`PJSK_REQ_PROXY`、`PJSK_STICKER_FORMAT`
+  - 修改 `PJSK_ASSETS_PREFIX`、`PJSK_REPO_PREFIX` 类型为 `List[str]`
+- 其他小修复，小优化
 
 ### 0.2.8
 
