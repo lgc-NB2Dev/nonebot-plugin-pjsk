@@ -86,7 +86,8 @@ async def check_and_download_font():
     #     download(path.name) for path in FONT_PATHS if not path.exists()
     # ]
     # await asyncio.gather(*tasks)
-    await download(FONT_PATH.name)
+    if not FONT_PATH.exists():
+        await download(FONT_PATH.name)
 
 
 async def load_sticker_info():
