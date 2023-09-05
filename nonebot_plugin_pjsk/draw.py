@@ -71,7 +71,7 @@ def ensure_font() -> Font:
     if not FONT:
         FONT = Font(
             str(FONT_PATH),
-            emoji_options=EmojiOptions(source=config.pjsk_emoji_source),
+            emoji_options=EmojiOptions(source=config.get_emoji_source()),
         )
     return FONT
 
