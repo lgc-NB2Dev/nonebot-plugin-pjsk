@@ -13,6 +13,7 @@ from numpy import rad2deg
 from .config import config
 from .draw import (
     DEFAULT_LINE_SPACING,
+    DEFAULT_STROKE_COLOR,
     DEFAULT_STROKE_WIDTH,
     TextTooLargeError,
     draw_sticker,
@@ -42,9 +43,16 @@ cmd_generate_parser.add_argument("-x", help="文字的中心 x 坐标")
 cmd_generate_parser.add_argument("-y", help="文字的中心 y 坐标")
 cmd_generate_parser.add_argument("-r", "--rotate", help="文字旋转的角度")
 cmd_generate_parser.add_argument("-s", "--size", help="文字的大小，不指定时会以默认大小为最大值自动调整")
+cmd_generate_parser.add_argument("-c", "--font-color", help="文字颜色，使用 16 进制格式")
 # cmd_generate_parser.add_argument("-w", "--weight", help="文本粗细")
 cmd_generate_parser.add_argument("-W", "--stroke-width", help="文本描边宽度")
-cmd_generate_parser.add_argument("-C", "--line-spacing", help="文本行间距")
+cmd_generate_parser.add_argument("-C", "--stroke-color", help="文本描边颜色，使用 16 进制格式")
+cmd_generate_parser.add_argument("-S", "--line-spacing", help="文本行间距")
+cmd_generate_parser.add_argument(
+    "-f",
+    "--format",
+    help=f"图片保存的格式，默认为 {config.pjsk_sticker_format}",
+)
 
 cmd_generate = on_shell_command(
     "pjsk",
@@ -120,16 +128,18 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
     try:
         image = await draw_sticker(
             selected_sticker,
-            text=" ".join(texts),  # if texts else default_text.text,
+            text=" ".join(texts) or default_text.text,
             x=resolve_value(args.x, default_text.x),
             y=resolve_value(args.y, default_text.y),
-            rotate=(  # 惰性求值
-                args.rotate
-                if args.rotate is None
-                else resolve_value(args.rotate, rad2deg(default_text.r / 10), float)
+            rotate=resolve_value(
+                args.rotate,
+                lambda: rad2deg(default_text.r / 10),
+                float,
             ),
             font_size=resolve_value(args.size, default_text.s),
+            font_color=args.font_color or selected_sticker.color,
             stroke_width=resolve_value(args.stroke_width, DEFAULT_STROKE_WIDTH),
+            stroke_color=args.stroke_color or DEFAULT_STROKE_COLOR,
             line_spacing=resolve_value(args.line_spacing, DEFAULT_LINE_SPACING, float),
             # font_weight=resolve_value(args.weight, DEFAULT_FONT_WEIGHT),
             auto_adjust=args.size is None,
@@ -239,4 +249,5 @@ async def _(
     except Exception as e:
         await matcher.finish(format_draw_error(e))
 
-    await MessageFactory([Image(i2b(image))]).finish(reply=config.pjsk_reply)
+    image_bytes = i2b(image, config.pjsk_sticker_format)
+    await MessageFactory([Image(image_bytes)]).finish(reply=config.pjsk_reply)

@@ -53,10 +53,12 @@ SYSTEM_FONT: Optional[Font] = None
 DEFAULT_FONT_WEIGHT = 700
 DEFAULT_STROKE_WIDTH = 9
 DEFAULT_LINE_SPACING = 1.3
+DEFAULT_STROKE_COLOR = "#ffffff"
 
 CANVAS_SIZE = (296, 256)
 MAX_TEXT_IMAGE_SIZE = 2048
 
+TRANSPARENT = (0, 0, 0, 0)
 ONE_DARK_BLACK = "#282c34"
 ONE_DARK_WHITE = "#abb2bf"
 
@@ -99,7 +101,7 @@ def resize_sticker(image: Image.Image, size: Tuple[int, int], **kwargs) -> Image
     height = int(image.height * ratio)
 
     image = image.resize((width, height), resample=Image.BICUBIC, **kwargs)
-    new_image = Image.new("RGBA", size, (255, 255, 255, 0))
+    new_image = Image.new("RGBA", size, TRANSPARENT)
     new_image.paste(image, ((size[0] - width) // 2, (size[1] - height) // 2))
     return new_image
 
@@ -112,12 +114,17 @@ def get_ax_by_align(align: TextAlign) -> float:
     return 0.5  # center
 
 
+# TODO 使用 pil-utils 或 skia-python 重写
+# 反正已经合并两个字体文件到一起了，
+# 现在就没必要用 imagefont-py 了，
+# 感觉这玩意好鸡肋
 async def render_text(
     text: str,
     color: str,
     font_size: int,
     font_weight: int = DEFAULT_FONT_WEIGHT,
     stoke_width: int = DEFAULT_STROKE_WIDTH,
+    stroke_color: ColorType = "#ffffff",
     line_spacing: float = DEFAULT_LINE_SPACING,
     align: TextAlign = TextAlign.Center,
     max_width: Optional[int] = None,
@@ -160,7 +167,12 @@ async def render_text(
     if size[0] > MAX_TEXT_IMAGE_SIZE or size[1] > MAX_TEXT_IMAGE_SIZE:
         raise TextTooLargeError
 
-    canvas = Canvas(*size, Color(255, 255, 255, 0))
+    canvas = Canvas(*size, Color(*TRANSPARENT))
+    stroke_color_obj = (
+        hex_to_color(stroke_color)
+        if isinstance(stroke_color, str)
+        else Color(*stroke_color)
+    )
     await anyio.to_thread.run_sync(
         partial(
             draw_text_multiline,
@@ -177,7 +189,7 @@ async def render_text(
             line_spacing=line_spacing,
             align=align,
             stroke=stoke_width,  # type: ignore 源码 type 有问题
-            stroke_color=Paint(Color(255, 255, 255)),
+            stroke_color=Paint(stroke_color_obj),
             draw_emojis=True,
         ),
     )
@@ -194,7 +206,7 @@ def paste_text_on_image(
 ) -> Image.Image:
     image = resize_sticker(image, CANVAS_SIZE)
 
-    text_bg = Image.new("RGBA", CANVAS_SIZE, (255, 255, 255, 0))
+    text_bg = Image.new("RGBA", CANVAS_SIZE, TRANSPARENT)
     text = text.rotate(-rotate, resample=Image.BICUBIC, expand=True)
     text_bg.paste(text, (x - text.size[0] // 2, y - text.size[1] // 2), text)
 
@@ -228,7 +240,9 @@ async def draw_sticker(
     y: Optional[int] = None,
     rotate: Optional[float] = None,
     font_size: Optional[int] = None,
+    font_color: Optional[str] = None,
     stroke_width: Optional[int] = None,
+    stroke_color: Optional[str] = None,
     line_spacing: Optional[float] = None,
     font_weight: Optional[int] = None,
     auto_adjust: bool = False,  # noqa: FBT001
@@ -237,10 +251,11 @@ async def draw_sticker(
     sticker_img = await anyio.Path(RESOURCE_FOLDER / info.img).read_bytes()
     text_img = await render_text(
         qor(text, default_text.text),
-        info.color,
+        qor(font_color, info.color),
         qor(font_size, default_text.s),
         qor(font_weight, DEFAULT_FONT_WEIGHT),
         qor(stroke_width, DEFAULT_STROKE_WIDTH),
+        qor(stroke_color, DEFAULT_STROKE_COLOR),
         qor(line_spacing, DEFAULT_LINE_SPACING),
         max_width=CANVAS_SIZE[0] if auto_adjust else None,
         will_rotate=rotate,
@@ -250,7 +265,7 @@ async def draw_sticker(
         text_img,
         qor(x, default_text.x),
         qor(y, default_text.y),
-        rotate if rotate is not None else rad2deg(default_text.r / 10),  # 惰性求值
+        qor(rotate, lambda: rad2deg(default_text.r / 10)),
     )
 
 
@@ -303,13 +318,15 @@ def wrap_line(line: str, font: ImageFont.FreeTypeFont, width: int) -> List[str]:
     while font.getlength(line) > width:
         tail = line[-1] + tail
         line = line[:-1]
+        if not line:
+            raise ValueError("Width too small")
     wrapped.append(line)
     wrapped.extend(wrap_line(tail, font, width))
     return wrapped
 
 
 async def render_help_image(text: str) -> Image.Image:
-    width = 1130
+    width = 1120
     font_size = 24
     padding = 24
     font = ImageFont.truetype(str(FONT_PATHS[-1]), font_size)

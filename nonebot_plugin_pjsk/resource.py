@@ -9,7 +9,7 @@ from nonebot import get_driver, logger
 from pydantic import BaseModel, Field, parse_raw_as
 
 from .config import config
-from .utils import ResponseType, async_request, with_semaphore
+from .utils import ResponseType, append_prefix, async_request, with_semaphore
 
 DATA_FOLDER = Path.cwd() / "data" / "pjsk"
 FONT_FOLDER = DATA_FOLDER / "fonts"
@@ -77,10 +77,11 @@ def select_or_get_random(sticker_id: Optional[str] = None) -> Optional[StickerIn
 async def check_and_download_font():
     async def download(font_name: str):
         logger.opt(colors=True).info(f"Downloading font <y>{font_name}</y>")
+
         path = anyio.Path(FONT_FOLDER) / font_name
-        await path.write_bytes(
-            await async_request(f"fonts/{font_name}", prefix=config.pjsk_repo_prefix),
-        )
+        urls = append_prefix(f"fonts/{font_name}", config.pjsk_repo_prefix)
+        await path.write_bytes(await async_request(*urls))
+
         logger.opt(colors=True).info(f"Successfully downloaded font <y>{font_name}</y>")
 
     tasks: List[Coroutine] = [
@@ -93,8 +94,9 @@ async def load_sticker_info():
     logger.debug("Updating sticker information")
 
     path = anyio.Path(STICKER_INFO_CACHE)
+    urls = append_prefix("src/characters.json", config.pjsk_assets_prefix)
     try:
-        loaded_text = await async_request("src/characters.json", ResponseType.TEXT)
+        loaded_text = await async_request(*urls, response_type=ResponseType.TEXT)
         await path.write_text(loaded_text, encoding="u8")
     except Exception as e:
         if not (await path.exists()):
@@ -119,7 +121,8 @@ async def check_and_download_stickers():
             await dir_name.mkdir(parents=True, exist_ok=True)
 
         logger.opt(colors=True).info(f"Downloading sticker <y>{path.name}</y>")
-        await path.write_bytes(await async_request(f"public/img/{path_str}"))
+        urls = append_prefix(f"public/img/{path_str}", config.pjsk_assets_prefix)
+        await path.write_bytes(await async_request(*urls))
 
     logger.debug("Checking and downloading sticker assets")
     tasks: List[Coroutine] = [
