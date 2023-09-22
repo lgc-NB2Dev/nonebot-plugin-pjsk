@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-pjsk"
-version = "0.2.9"
+version = "0.2.9.post1"
 description = "Project Sekai Sticker Creator for NoneBot2."
 authors = [
     { name = "Agnes_Digital", email = "Z735803792@163.com" },
@@ -30,7 +30,7 @@ readme = "README.md"
 license = { text = "MIT" }
 
 [project.urls]
-homepage = "https://github.com/Agnes4m/nonebot_plugin_pjsk"
+homepage = "https://github.com/lgc-NB2Dev/nonebot-plugin-pjsk"
 
 [tool.pdm.build]
 includes = []
@@ -38,59 +38,3 @@ includes = []
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
-
-[tool.pyright]
-pythonVersion = "3.8"
-
-[tool.black]
-line-length = 89
-target-version = ["py39", "py310", "py311"]
-include = '\.pyi?$'
-# skip-string-normalization = true
-
-[tool.ruff.isort]
-extra-standard-library = ["typing_extensions"]
-
-[tool.ruff]
-ignore = [
-    "B008",
-    "B905",
-    "E501",
-    "FBT002",
-    "PGH003",
-    "RUF001",
-    "RUF002",
-    "RUF003",
-    "RUF006",
-    "RUF100",
-    "SIM117",
-    "TRY002",
-    "TRY003",
-]
-select = [
-    "A",
-    "ARG",
-    "ASYNC",
-    "B",
-    "C4",
-    "COM",
-    "E",
-    "F",
-    "FBT",
-    "FLY",
-    "I",
-    "ISC",
-    "N",
-    "PIE",
-    "PGH",
-    "PTH",
-    "PYI",
-    "Q",
-    "RET",
-    "RSE",
-    "RUF",
-    "SIM",
-    "SLF",
-    "SLOT",
-    "TRY",
-]

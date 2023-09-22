@@ -1,8 +1,8 @@
 from typing import List, Optional
 
 from nonebot import logger, on_command, on_shell_command
+from nonebot.adapters import Message
 from nonebot.exception import ParserExit
-from nonebot.internal.adapter import Message
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, CommandArg, ShellCommandArgs
 from nonebot.rule import ArgumentParser, Namespace

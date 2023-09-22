@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD026 MD031 MD033 MD036 MD041 -->
+<!-- markdownlint-disable MD024 MD026 MD031 MD033 MD036 MD041 -->
 
 <div align="center">
 
@@ -40,12 +40,14 @@ _✨ Project Sekai 表情包制作 ✨_
 
 - 如遇字体大小不协调问题，请更新插件到最新版本，并且删除 `data/pjsk/fonts` 文件夹下的所有文件
 - 如果遇到资源文件下载失败的情况，请参考 [这个 issue](https://github.com/Agnes4m/nonebot_plugin_pjsk/issues/15)
+- ~~由于本人没玩过啤酒烧烤，~~ 可能出现一些小问题，可以提 issue 或者 [加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈 ~~或者单纯进来玩~~
+- 本项目仅供学习使用，请勿用于商业用途，喜欢该项目可以 Star 或者提供 PR，如果构成侵权将在 24 小时内删除
 
 ## 📖 介绍
 
 ### Wonderhoy!
 
-![Wonderhoy](./readme/wonderhoy.png)
+![Wonderhoy](https://raw.githubusercontent.com/lgc-NB2Dev/readme/main/pjsk/wonderhoy.png)
 
 ## 💿 安装
 
@@ -135,22 +137,29 @@ plugins = [
 <details>
 <summary>使用交互创建模式</summary>
 
-![example](./readme/example-interact.png)
+![example](https://raw.githubusercontent.com/lgc-NB2Dev/readme/main/pjsk/example-interact.png)
 
 </details>
 
 <details>
 <summary>使用 Shell-Like 指令</summary>
 
-![example](./readme/example.png)
+![example](https://raw.githubusercontent.com/lgc-NB2Dev/readme/main/pjsk/example.png)
 
 </details>
 
-## 🙈 碎碎念
+## 📞 联系
 
-- ~~由于本人没玩过啤酒烧烤，~~ 可能出现一些小问题，可以提 issue 或者 [加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈 ~~或者单纯进来玩~~
-- 本项目仅供学习使用，请勿用于商业用途，喜欢该项目可以 Star 或者提供 PR，如果构成侵权将在 24 小时内删除
-- [爱发电](https://afdian.net/a/agnes_digital)
+### Agnes Digital
+
+QQ 群: [424506063](https://jq.qq.com/?_wv=1027&k=l82tMuPG)
+
+### student_2333
+
+QQ：3076823485  
+Telegram：[@lgc2333](https://t.me/lgc2333)  
+吹水群：[1105946125](https://jq.qq.com/?_wv=1027&k=Z3n1MpEp)  
+邮箱：<lgc2333@126.com>
 
 ## 💡 鸣谢
 
@@ -162,7 +171,19 @@ plugins = [
 
 感谢大家的赞助！你们的赞助将是我继续创作的动力！
 
+### Agnes Digital
+
 - [爱发电](https://afdian.net/a/agnes_digital)
+
+### student_2333
+
+- [爱发电](https://afdian.net/@lgc2333)
+- <details>
+    <summary>赞助二维码（点击展开）</summary>
+
+  ![讨饭](https://raw.githubusercontent.com/lgc2333/ShigureBotMenu/master/src/imgs/sponsor.png)
+
+  </details>
 
 ## 📝 更新日志
 

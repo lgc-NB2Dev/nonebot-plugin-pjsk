@@ -19,6 +19,7 @@ from typing import (
 from typing_extensions import ParamSpec
 
 import anyio
+from anyio import to_thread
 from imagetext_py import (
     Canvas,
     Color,
@@ -133,7 +134,7 @@ async def render_text(
     padding = stoke_width
 
     while True:
-        actual_size = await anyio.to_thread.run_sync(
+        actual_size = await to_thread.run_sync(
             partial(
                 text_size_multiline,
                 lines=text_lines,
@@ -169,7 +170,7 @@ async def render_text(
         if isinstance(stroke_color, str)
         else Color(*stroke_color)
     )
-    await anyio.to_thread.run_sync(
+    await to_thread.run_sync(
         partial(
             draw_text_multiline,
             canvas=canvas,
