@@ -1,14 +1,14 @@
 [project]
 name = "nonebot-plugin-pjsk"
-version = "0.2.9.post1"
+version = "0.2.9.post2"
 description = "Project Sekai Sticker Creator for NoneBot2."
 authors = [
     { name = "Agnes_Digital", email = "Z735803792@163.com" },
     { name = "student_2333", email = "lgc2333@126.com" },
 ]
 dependencies = [
-    "nonebot2>=2.0.0",
-    "nonebot-plugin-send-anything-anywhere>=0.2.7",
+    "nonebot2>=2.1.1",
+    "nonebot-plugin-send-anything-anywhere>=0.3.2",
     "pillow>=9,<10",
     "imagetext-py>=2.1.3",
     "aiohttp>=3.8.5",

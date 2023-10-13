@@ -6,7 +6,7 @@ groups = ["default"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:e671f350d4f1a06d5be52f84e31ace9ae88e90d200a98038f743356eb284384c"
+content_hash = "sha256:c6bea519ea694ad0f64b6412ec3da89f7a64f6079928356f4c5f28ee6bb38ed2"
 
 [[package]]
 name = "aiohttp"
@@ -346,7 +346,7 @@ files = [
 
 [[package]]
 name = "nonebot-plugin-send-anything-anywhere"
-version = "0.3.0"
+version = "0.3.2"
 requires_python = ">=3.8,<4.0"
 summary = "An adaptor for nonebot2 adaptors"
 dependencies = [
@@ -356,13 +356,13 @@ dependencies = [
     "strenum<0.5.0,>=0.4.8",
 ]
 files = [
-    {file = "nonebot_plugin_send_anything_anywhere-0.3.0-py3-none-any.whl", hash = "sha256:30ed3346e9acd0b80f7be5306b70f581d6a20f90388e46ccc984303d4c4449be"},
-    {file = "nonebot_plugin_send_anything_anywhere-0.3.0.tar.gz", hash = "sha256:1ec98b48c842cdc656fbc9d90ee44a60eb77761d94843cf03cc1327f1b04773c"},
+    {file = "nonebot_plugin_send_anything_anywhere-0.3.2-py3-none-any.whl", hash = "sha256:2dac60653f49aa25f3a08eb75544ecb155e30b2496f1f7a16e27ddc76ff09796"},
+    {file = "nonebot_plugin_send_anything_anywhere-0.3.2.tar.gz", hash = "sha256:19a54c8f69d01f2000b1f2536eea4076acd8fe219f7f0d9060a8120bd7052d52"},
 ]
 
 [[package]]
 name = "nonebot2"
-version = "2.1.0"
+version = "2.1.1"
 requires_python = ">=3.8,<4.0"
 summary = "An asynchronous python bot framework."
 dependencies = [
@@ -374,8 +374,8 @@ dependencies = [
     "yarl<2.0.0,>=1.7.2",
 ]
 files = [
-    {file = "nonebot2-2.1.0-py3-none-any.whl", hash = "sha256:e14bfbb962df72a9beac5035291594ad6e549c004b2ff5d28db97d0fdc3abf45"},
-    {file = "nonebot2-2.1.0.tar.gz", hash = "sha256:f29cb773833ab5000557090edcbc5a6eabaf6e04a224c86761a4ddb6b1e0bd18"},
+    {file = "nonebot2-2.1.1-py3-none-any.whl", hash = "sha256:fe780eee116b2798e1db043b92aefa1b1f2bf1026725388a1dbbb211bbb4ef4b"},
+    {file = "nonebot2-2.1.1.tar.gz", hash = "sha256:e3937c28bca26f2f8717fedd8594e0cfc79faa2d99a3209c4a63706727d700f8"},
 ]
 
 [[package]]

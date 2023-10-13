@@ -1,5 +1,5 @@
 from nonebot import require
-from nonebot.plugin import PluginMetadata
+from nonebot.plugin import PluginMetadata, inherit_supported_adapters
 
 require("nonebot_plugin_saa")
 
@@ -14,13 +14,7 @@ __plugin_meta__ = PluginMetadata(
     type="application",
     homepage="https://github.com/Agnes4m/nonebot_plugin_pjsk",
     config=ConfigModel,
-    supported_adapters={
-        "~onebot.v11",
-        "~onebot.v12",
-        "~kaiheila",
-        "~qqguild",
-        "~telegram",
-    },
+    supported_adapters=inherit_supported_adapters("nonebot_plugin_saa"),
     extra={
         "version": __version__,
         "author": ["Agnes4m <Z735803792@163.com>", "student_2333 <lgc2333@126.com>"],
