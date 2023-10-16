@@ -91,7 +91,7 @@ async def async_request(
             f"Retrying ({retries} left) because error occurred while requesting {url}",
         )
         logger.debug(repr(e))
-        return await async_request(url, response_type=response_type, retries=retries)
+        return await async_request(*urls, response_type=response_type, retries=retries)
 
 
 def append_prefix(suffix: str, prefixes: List[str]) -> List[str]:
