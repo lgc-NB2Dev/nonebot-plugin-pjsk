@@ -39,9 +39,11 @@ _✨ Project Sekai 表情包制作 ✨_
 ## 💬 前言
 
 - 如遇字体大小不协调问题，请更新插件到最新版本，并且删除 `data/pjsk/fonts` 文件夹下的所有文件
-- 如果遇到资源文件下载失败的情况，请参考 [这个 issue](https://github.com/Agnes4m/nonebot_plugin_pjsk/issues/15)
+- 如遇找不到包无法安装的情况，请先确认你使用的 Python 版本是否 `>=3.9` 且 `<=3.11`
 - ~~由于本人没玩过啤酒烧烤，~~ 可能出现一些小问题，可以提 issue 或者 [加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈 ~~或者单纯进来玩~~
 - 本项目仅供学习使用，请勿用于商业用途，喜欢该项目可以 Star 或者提供 PR，如果构成侵权将在 24 小时内删除
+
+<!-- - 如果遇到资源文件下载失败的情况，请参考 [这个 issue](https://github.com/Agnes4m/nonebot_plugin_pjsk/issues/15) -->
 
 ## 📖 介绍
 
@@ -186,6 +188,12 @@ Telegram：[@lgc2333](https://t.me/lgc2333)
   </details>
 
 ## 📝 更新日志
+
+### 0.2.10
+
+- 修复指定保存格式无效的 Bug
+- 添加指令参数 `--auto-adjust`（`-A`）
+- 其他小修改
 
 ### 0.2.9
 

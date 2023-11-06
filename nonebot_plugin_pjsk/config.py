@@ -2,7 +2,7 @@ from typing import List, Optional, Set
 
 from imagetext_py import EmojiSource
 from nonebot import get_driver
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field, HttpUrl, validator
 
 
 class ConfigModel(BaseModel):
@@ -10,16 +10,21 @@ class ConfigModel(BaseModel):
 
     pjsk_req_retry: int = 2
     pjsk_req_proxy: Optional[str] = None
-    pjsk_assets_prefix: List[str] = [
-        "https://ghproxy.com/https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/",
-        "https://raw.gitmirror.com/TheOriginalAyaka/sekai-stickers/main/",
-        "https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/",
-    ]
-    pjsk_repo_prefix: List[str] = [
-        "https://ghproxy.com/https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
-        "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/",
-        "https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
-    ]
+    pjsk_req_timeout: int = 10
+    pjsk_assets_prefix: List[HttpUrl] = Field(
+        [
+            "https://ghproxy.com/https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/",
+            "https://raw.gitmirror.com/TheOriginalAyaka/sekai-stickers/main/",
+            "https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/",
+        ],
+    )
+    pjsk_repo_prefix: List[HttpUrl] = Field(
+        [
+            "https://ghproxy.com/https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
+            "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/",
+            "https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
+        ],
+    )
 
     pjsk_emoji_source: str = "Apple"
     pjsk_help_as_image: bool = True
@@ -27,19 +32,14 @@ class ConfigModel(BaseModel):
     pjsk_sticker_format: str = "PNG"
 
     @validator("pjsk_assets_prefix", "pjsk_repo_prefix", pre=True)
-    def check_url_list(cls, v):  # noqa: N805
-        def check(url: str) -> str:
-            if not url.startswith(("http://", "https://")):
-                raise ValueError("URL must start with http:// or https://")
-            if not url.endswith("/"):
-                url = f"{url}/"
-            return url
-
+    def str_to_list(cls, v):  # noqa: N805
         if isinstance(v, str):
             v = [v]
-        if not isinstance(v, list):
-            raise TypeError("Must be a list of str")
-        return [check(url) for url in v]
+        return v
+
+    @validator("pjsk_assets_prefix", "pjsk_repo_prefix")
+    def append_slash(cls, v):  # noqa: N805
+        return [v if v.endswith("/") else f"{v}/" for v in v]
 
     @validator("pjsk_emoji_source", pre=True)
     def check_emoji_source(cls, v):  # noqa: N805

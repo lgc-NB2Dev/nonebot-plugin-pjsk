@@ -53,6 +53,12 @@ cmd_generate_parser.add_argument(
     "--format",
     help=f"图片保存的格式，默认为 {config.pjsk_sticker_format}",
 )
+cmd_generate_parser.add_argument(
+    "-A",
+    "--auto-adjust",
+    action="store_true",
+    help="启用字号自动调整",
+)
 
 cmd_generate = on_shell_command(
     "pjsk",
@@ -118,12 +124,15 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
     if not any(vars(args).values()):  # 没有任何参数
         matcher.skip()  # 跳过该 handler 进入交互模式
 
+    texts: List[str] = args.text
+    if not all(isinstance(x, str) for x in texts):
+        await matcher.finish("只接受字符串参数")
+
     sticker_id: Optional[str] = args.id
     selected_sticker = select_or_get_random(sticker_id)
     if not selected_sticker:
         await matcher.finish("没有找到对应 ID 的表情")
 
-    texts: List[str] = args.text
     default_text = selected_sticker.default_text
     try:
         image = await draw_sticker(
@@ -141,8 +150,7 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
             stroke_width=resolve_value(args.stroke_width, DEFAULT_STROKE_WIDTH),
             stroke_color=args.stroke_color or DEFAULT_STROKE_COLOR,
             line_spacing=resolve_value(args.line_spacing, DEFAULT_LINE_SPACING, float),
-            # font_weight=resolve_value(args.weight, DEFAULT_FONT_WEIGHT),
-            auto_adjust=args.size is None,
+            auto_adjust=args.auto_adjust or (args.size is None),
         )
     except Exception as e:
         await matcher.finish(format_draw_error(e))
@@ -249,5 +257,5 @@ async def _(
     except Exception as e:
         await matcher.finish(format_draw_error(e))
 
-    image_bytes = i2b(image, config.pjsk_sticker_format)
+    image_bytes = i2b(image)
     await MessageFactory([Image(image_bytes)]).finish(reply=config.pjsk_reply)

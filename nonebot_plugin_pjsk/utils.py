@@ -7,13 +7,14 @@ from typing import (
     List,
     Literal,
     Optional,
+    Sequence,
     Type,
     TypeVar,
     Union,
     overload,
 )
 
-from aiohttp import ClientSession
+from httpx import AsyncClient
 from nonebot import logger
 
 from .config import config
@@ -67,34 +68,34 @@ async def async_request(
 
     url, rest = urls[0], urls[1:]
     try:
-        async with ClientSession(raise_for_status=True) as session:
-            async with session.get(url, proxy=config.pjsk_req_proxy) as response:
-                if response_type == ResponseType.JSON:
-                    return await response.json()
-                if response_type == ResponseType.TEXT:
-                    return await response.text()
-                return await response.read()
+        async with AsyncClient(
+            proxies=config.pjsk_req_proxy,
+            timeout=config.pjsk_req_timeout,
+        ) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            if response_type == ResponseType.JSON:
+                return await response.json()
+            if response_type == ResponseType.TEXT:
+                return response.text
+            return response.read()
 
     except Exception as e:
+        err_suffix = f"because error occurred while requesting {url}: {e.__class__.__name__}: {e}"
         if retries <= 0:
             if not rest:
                 raise
-
-            logger.error(
-                f"Requesting next url because error occurred while requesting {url}",
-            )
+            logger.error(f"Requesting next url {err_suffix}")
             logger.debug(repr(e))
             return await async_request(*rest, response_type=response_type)
 
         retries -= 1
-        logger.error(
-            f"Retrying ({retries} left) because error occurred while requesting {url}",
-        )
+        logger.error(f"Retrying ({retries} left) {err_suffix}")
         logger.debug(repr(e))
         return await async_request(*urls, response_type=response_type, retries=retries)
 
 
-def append_prefix(suffix: str, prefixes: List[str]) -> List[str]:
+def append_prefix(suffix: str, prefixes: Sequence[str]) -> List[str]:
     return [prefix + suffix for prefix in prefixes]
 
 
@@ -109,17 +110,9 @@ def with_semaphore(semaphore: Semaphore):
     return decorator
 
 
-def split_list(li: Iterable[T], length: int) -> List[List[T]]:
-    latest = []
-    tmp = []
-    for n, i in enumerate(li):
-        tmp.append(i)
-        if (n + 1) % length == 0:
-            latest.append(tmp)
-            tmp = []
-    if tmp:
-        latest.append(tmp)
-    return latest
+def chunks(iterable: Sequence[T], size: int) -> Iterable[Sequence[T]]:
+    for i in range(0, len(iterable), size):
+        yield iterable[i : i + size]
 
 
 class ResolveValueError(ValueError):
