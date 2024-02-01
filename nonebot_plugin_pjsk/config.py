@@ -12,16 +12,14 @@ class ConfigModel(BaseModel):
     pjsk_req_timeout: int = 10
     pjsk_assets_prefix: List[HttpUrl] = Field(
         [
-            "https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/",
             "https://raw.gitmirror.com/TheOriginalAyaka/sekai-stickers/main/",
-            "https://ghproxy.com/https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/",
+            "https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/",
         ],
     )
     pjsk_repo_prefix: List[HttpUrl] = Field(
         [
-            "https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
             "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/",
-            "https://ghproxy.com/https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
+            "https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
         ],
     )
 

@@ -38,11 +38,10 @@ _✨ Project Sekai 表情包制作 ✨_
 
 ## 💬 前言
 
-- 如遇字体大小不协调问题，请更新插件到最新版本，并且删除 `data/pjsk/fonts` 文件夹下的所有文件
-- 如遇找不到包无法安装的情况，请先确认你使用的 Python 版本是否 `>=3.9` 且 `<=3.11`
 - ~~由于本人没玩过啤酒烧烤，~~ 可能出现一些小问题，可以提 issue 或者 [加群](https://jq.qq.com/?_wv=1027&k=l82tMuPG)反馈 ~~或者单纯进来玩~~
 - 本项目仅供学习使用，请勿用于商业用途，喜欢该项目可以 Star 或者提供 PR，如果构成侵权将在 24 小时内删除
 
+<!-- - 如遇字体大小不协调问题，请更新插件到最新版本，并且删除 `data/pjsk/fonts` 文件夹下的所有文件 -->
 <!-- - 如果遇到资源文件下载失败的情况，请参考 [这个 issue](https://github.com/Agnes4m/nonebot_plugin_pjsk/issues/15) -->
 
 ## 📖 介绍
@@ -118,16 +117,16 @@ plugins = [
 
 插件开箱即用，所有配置项皆为可选。请**按需添加**下面的配置项到 `.env` 文件中
 
-|        配置项         | 必填 | 默认值  |                                                              说明                                                              |
-| :-------------------: | :--: | :-----: | :----------------------------------------------------------------------------------------------------------------------------: |
-| `PJSK_ASSETS_PREFIX`  |  否  |   ...   |                                TheOriginalAyaka/sekai-stickers 仓库 GitHubUserContent 地址列表                                 |
-|  `PJSK_REPO_PREFIX`   |  否  |   ...   |                                               本仓库 GitHubUserContent 地址列表                                                |
-|  `PJSK_EMOJI_SOURCE`  |  否  | `Apple` | Emoji 来源，可选值见 [这里](https://github.com/nathanielfernandes/imagetext-py/blob/master/imagetext_py/imagetext_py.pyi#L217) |
-| `PJSK_HELP_AS_IMAGE`  |  否  | `True`  |                                                  是否将帮助信息渲染为图片发送                                                  |
-|     `PJSK_REPLY`      |  否  | `True`  |                                                       是否回复消息发送者                                                       |
-|   `PJSK_REQ_RETRY`    |  否  |   `2`   |                                                   插件请求 URL 时的重试次数                                                    |
-|   `PJSK_REQ_PROXY`    |  否  | `None`  |                                                    插件下载资源时使用的代理                                                    |
-| `PJSK_STICKER_FORMAT` |  否  |  `PNG`  |                     插件保存生成的表情所用的格式，如生成的表情出现底色不为透明的情况请尝试将此项改为 `GIF`                     |
+|        配置项        | 必填 | 默认值  |                               说明                               |
+| :------------------: | :--: | :-----: | :--------------------------------------------------------------: |
+| `PJSK_ASSETS_PREFIX` |  否  |   ...   | TheOriginalAyaka/sekai-stickers 仓库 GitHubUserContent 地址列表  |
+|  `PJSK_REPO_PREFIX`  |  否  |   ...   |                本仓库 GitHubUserContent 地址列表                 |
+| `PJSK_HELP_AS_IMAGE` |  否  | `True`  |                   是否将帮助信息渲染为图片发送                   |
+|     `PJSK_REPLY`     |  否  | `True`  |                        是否回复消息发送者                        |
+|   `PJSK_REQ_RETRY`   |  否  |   `1`   |                    插件请求 URL 时的重试次数                     |
+|   `PJSK_REQ_PROXY`   |  否  | `None`  |                     插件下载资源时使用的代理                     |
+|   `PJSK_USE_CACHE`   |  否  | `True`  |                    是否缓存插件生成的所有图片                    |
+|  `PJSK_CLEAR_CACHE`  |  否  | `False` | 是否在插件启动时清空缓存文件夹，禁用时只会清理非表情包的图片缓存 |
 
 ## 🎉 使用
 
@@ -188,6 +187,17 @@ Telegram：[@lgc2333](https://t.me/lgc2333)
   </details>
 
 ## 📝 更新日志
+
+### 0.3.0
+
+- 重构插件：
+  - 弃用 `imagetext-py` 与 `Pillow`，改用 `htmlrender` 渲染 `svg`（表情） 与 `html`（总览、帮助）
+  - 弃用 `saa`，换用 `alconna`
+- 配置项更改：
+  - 添加 `PJSK_USE_CACHE`、`PJSK_CLEAR_CACHE`
+  - 移除 `PJSK_EMOJI_SOURCE`、`PJSK_STICKER_FORMAT`
+  - `PJSK_REQ_RETRY` 默认值 从 `2` 改为 `1`
+  - `PJSK_ASSETS_PERFIX`、`PJSK_REPO_PREFIX` 默认值 删除 `ghproxy` 源
 
 ### 0.2.10
 
