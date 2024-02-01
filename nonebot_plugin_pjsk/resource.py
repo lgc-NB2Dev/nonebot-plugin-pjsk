@@ -1,10 +1,12 @@
 import asyncio
+import json
 import random
-import shutil
+from contextlib import suppress
 from pathlib import Path
-from typing import Coroutine, List, Optional, overload
+from typing import Any, Coroutine, List, Optional, overload
 
 import anyio
+import jinja2
 from nonebot import get_driver, logger
 from pydantic import BaseModel, Field, parse_raw_as
 
@@ -17,15 +19,54 @@ RESOURCE_FOLDER = DATA_FOLDER / "resource"
 STICKER_INFO_CACHE = DATA_FOLDER / "characters.json"
 
 CACHE_FOLDER = DATA_FOLDER / "cache"
-if CACHE_FOLDER.exists():
-    shutil.rmtree(CACHE_FOLDER)
-CACHE_FOLDER.mkdir(parents=True)
+if not CACHE_FOLDER.exists():
+    CACHE_FOLDER.mkdir(parents=True)
+else:
+    [
+        x.unlink()
+        for x in (
+            CACHE_FOLDER.iterdir()
+            if config.pjsk_clear_cache
+            else CACHE_FOLDER.glob("*.jpeg")
+        )
+    ]
 
 FONT_PATH = FONT_FOLDER / "YurukaFangTang.ttf"
 
 for _folder in (DATA_FOLDER, FONT_FOLDER, RESOURCE_FOLDER):
     if not _folder.exists():
         _folder.mkdir(parents=True)
+
+TEMPLATES_FOLDER = Path(__file__).parent / "templates"
+JINJA_ENV = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(TEMPLATES_FOLDER),
+    autoescape=jinja2.select_autoescape(["html", "xml"]),
+    enable_async=True,
+)
+
+
+def make_cache_key(obj: Any) -> str:
+    with suppress(Exception):
+        return str(hash(obj))
+    return str(hash(json.dumps(obj)))
+
+
+async def get_cache(filename: str) -> Optional[bytes]:
+    path = anyio.Path(CACHE_FOLDER / filename)
+    if await path.exists():
+        try:
+            return await path.read_bytes()
+        except Exception:
+            logger.exception("Error while reading cache")
+    return None
+
+
+async def write_cache(filename: str, data: bytes):
+    path = anyio.Path(CACHE_FOLDER / filename)
+    try:
+        await path.write_bytes(data)
+    except Exception:
+        logger.exception("Error while writing cache")
 
 
 class StickerText(BaseModel):

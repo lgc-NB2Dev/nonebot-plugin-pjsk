@@ -1,5 +1,7 @@
+import unicodedata
 from asyncio import Semaphore
 from enum import Enum, auto
+from functools import lru_cache
 from typing import (
     Any,
     Callable,
@@ -139,3 +141,8 @@ def resolve_value(
 
 def qor(a: Optional[TA], b: Union[TB, Callable[[], TB]]) -> Union[TA, TB]:
     return a if (a is not None) else (b() if isinstance(b, Callable) else b)
+
+
+@lru_cache()
+def is_full_width(char: str) -> bool:
+    return unicodedata.east_asian_width(char) in ("A", "F", "W")

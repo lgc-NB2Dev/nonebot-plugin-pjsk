@@ -1,3 +1,4 @@
+import math
 from typing import List, Optional
 
 from nonebot import logger, on_command, on_shell_command
@@ -7,21 +8,18 @@ from nonebot.matcher import Matcher
 from nonebot.params import Arg, ArgPlainText, CommandArg, ShellCommandArgs
 from nonebot.rule import ArgumentParser, Namespace
 from nonebot.typing import T_State
-from nonebot_plugin_saa import Image, MessageFactory, MessageSegmentFactory, Text
-from numpy import rad2deg
+from nonebot_plugin_alconna.uniseg import UniMessage
 
 from .config import config
-from .draw import (
+from .render import (
     DEFAULT_LINE_SPACING,
     DEFAULT_STROKE_COLOR,
     DEFAULT_STROKE_WIDTH,
-    TextTooLargeError,
-    draw_sticker,
-    get_all_characters,
-    get_character_stickers,
-    i2b,
-    render_help_image,
-    use_image_cache,
+    get_all_characters_grid,
+    get_character_stickers_grid,
+    get_help,
+    get_sticker,
+    make_sticker_render_kwargs,
 )
 from .resource import select_or_get_random
 from .utils import ResolveValueError, resolve_value
@@ -48,11 +46,6 @@ cmd_generate_parser.add_argument("-c", "--font-color", help="文字颜色，使�
 cmd_generate_parser.add_argument("-W", "--stroke-width", help="文本描边宽度")
 cmd_generate_parser.add_argument("-C", "--stroke-color", help="文本描边颜色，使用 16 进制格式")
 cmd_generate_parser.add_argument("-S", "--line-spacing", help="文本行间距")
-cmd_generate_parser.add_argument(
-    "-f",
-    "--format",
-    help=f"图片保存的格式，默认为 {config.pjsk_sticker_format}",
-)
 cmd_generate_parser.add_argument(
     "-A",
     "--auto-adjust",
@@ -92,8 +85,6 @@ async def handle_exit(matcher: Matcher, arg: str):
 def format_draw_error(error: Exception) -> str:
     if isinstance(error, ResolveValueError):
         return f"提供的参数值 `{error.args[0]}` 解析出错"
-    if isinstance(error, TextTooLargeError):
-        return "你给的参数是不是有点太逆天了 😅"
     logger.opt(exception=error).error("Error occurred while drawing sticker")
     return "生成表情时出错，请检查后台日志"
 
@@ -105,15 +96,16 @@ async def _(matcher: Matcher, foo: ParserExit = ShellCommandArgs()):
         return
 
     if foo.status == 0:
-        if config.pjsk_help_as_image:
-            try:
-                img = await use_image_cache(render_help_image, "help", "JPEG")(HELP)
-            except Exception:
-                logger.exception("Error occurred while rendering help image")
-                await matcher.finish("生成帮助图片时出错，请检查后台日志")
-            await MessageFactory([Image(img)]).finish(reply=config.pjsk_reply)
+        if not config.pjsk_help_as_image:
+            await matcher.finish(HELP)
 
-        await matcher.finish(HELP)
+        try:
+            img = await get_help(HELP)
+        except Exception:
+            logger.exception("Error occurred while rendering help image")
+            await matcher.finish("生成帮助图片时出错，请检查后台日志")
+        await UniMessage.image(raw=img).send(reply_to=config.pjsk_reply)
+        await matcher.finish()
 
     await matcher.finish(f"参数解析出错：{foo.message}")
 
@@ -135,14 +127,14 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
 
     default_text = selected_sticker.default_text
     try:
-        image = await draw_sticker(
+        kw = make_sticker_render_kwargs(
             selected_sticker,
             text=" ".join(texts) or default_text.text,
             x=resolve_value(args.x, default_text.x),
             y=resolve_value(args.y, default_text.y),
             rotate=resolve_value(
                 args.rotate,
-                lambda: rad2deg(default_text.r / 10),
+                lambda: math.degrees(default_text.r / 10),
                 float,
             ),
             font_size=resolve_value(args.size, default_text.s),
@@ -152,10 +144,12 @@ async def _(matcher: Matcher, args: Namespace = ShellCommandArgs()):
             line_spacing=resolve_value(args.line_spacing, DEFAULT_LINE_SPACING, float),
             auto_adjust=args.auto_adjust or (args.size is None),
         )
+        image = await get_sticker(**kw)
     except Exception as e:
         await matcher.finish(format_draw_error(e))
 
-    await MessageFactory([Image(i2b(image))]).finish(reply=config.pjsk_reply)
+    await UniMessage.image(raw=image).send(reply_to=config.pjsk_reply)
+    await matcher.finish()
 
 
 # interact mode or sticker list
@@ -180,13 +174,15 @@ async def _(matcher: Matcher, state: T_State):
     )
 
     try:
-        image = await get_all_characters()
+        image = await get_all_characters_grid()
     except Exception:
         logger.exception("Error occurred while getting character list")
         await matcher.finish("获取角色列表图片出错，请检查后台日志")
 
-    factory = MessageFactory([Image(image), Text(tip_text)])
-    await (factory.send if interact else factory.finish)(reply=config.pjsk_reply)
+    msg = UniMessage.image(raw=image) + tip_text
+    await msg.send(reply_to=config.pjsk_reply)
+    if not interact:
+        await matcher.finish()
 
 
 # sticker id list
@@ -211,7 +207,7 @@ async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character"
             matcher.skip()
 
     try:
-        image = await get_character_stickers(character)
+        image = await get_character_stickers_grid(character)
     except Exception:
         logger.exception("Error occurred while getting sticker list")
         await matcher.finish("获取表情列表图片出错，请检查后台日志")
@@ -221,12 +217,12 @@ async def _(matcher: Matcher, state: T_State, arg_msg: Message = Arg("character"
             await matcher.reject("没有找到对应名称的角色，请重新输入")
         await matcher.finish("没有找到对应名称的角色")
 
-    segments: List[MessageSegmentFactory] = [Image(image)]
+    msg = UniMessage.image(raw=image)
     if interact:
-        segments.append(Text("请发送你要生成表情的 ID"))
-
-    factory = MessageFactory(segments)
-    await (factory.send if interact else factory.finish)(reply=config.pjsk_reply)
+        msg += "请发送你要生成表情的 ID"
+    await msg.send(reply_to=config.pjsk_reply)
+    if not interact:
+        await matcher.finish()
 
 
 # below are interact mode handlers
@@ -253,9 +249,13 @@ async def _(
     assert sticker_info is not None
 
     try:
-        image = await draw_sticker(sticker_info, text=text, auto_adjust=True)
+        kw = make_sticker_render_kwargs(
+            sticker_info,
+            text=text,
+            auto_adjust=True,
+        )
+        image = await get_sticker(**kw)
     except Exception as e:
         await matcher.finish(format_draw_error(e))
 
-    image_bytes = i2b(image)
-    await MessageFactory([Image(image_bytes)]).finish(reply=config.pjsk_reply)
+    await UniMessage.image(raw=image).send(reply_to=config.pjsk_reply)

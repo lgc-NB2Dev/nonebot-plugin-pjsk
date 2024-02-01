@@ -1,0 +1,31 @@
+{#-
+Args:
+- items: a list of sticker svgs will be display
+-#}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .main-wrapper {
+        width: max-content;
+        padding: 14px;
+        background-color: #282c34;
+      }
+
+      .main {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(5, 1fr);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-wrapper">
+      <div class="main">
+        {% for it in items %}{{ it | safe }}{% endfor %}
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+{#-
+Args:
+- id: image pattern id
+- image: image url
+- x: first line baseline center x pos in pixel
+- y: meaning like x
+- font_color: font color, use web color
+- font_size: font size in pixel
+- stroke_color: stroke color, use web color
+- stroke_width: stroke width in pixel
+- rotate: rotate in degrees
+- line_spacing: line spacing, 1.0 means no spacing
+- font: font url
+- width: image width in pixel
+- height: image height in pixel
+-#}
+<svg version="1.1" baseProfile="full" width="{{ width }}" height="{{ height }}" viewBox="0 0 {{ width }} {{ height }}"
+  xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="{{ id }}" patternUnits="userSpaceOnUse" width="{{ width }}" height="{{ height }}">
+      <image href="{{ image }}" x="0" y="0" width="{{ width }}" height="{{ height }}" />
+    </pattern>
+    <style>
+      @font-face {
+        font-family: CustomFont;
+        src: url('{{ font }}');
+      }
+
+      svg {
+        font-family: CustomFont, sans-serif;
+      }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="{{ width }}" height="{{ height }}" fill="url(#{{ id }})" />
+  <text x="{{ x }}" y="{{ y }}" fill="{{ font_color }}" font-size="{{ font_size }}" text-align="center"
+    text-anchor="middle" stroke="{{ stroke_color }}" stroke-width="{{ stroke_width }}" stroke-linecap="round"
+    stroke-linejoin="round" paint-order="stroke" transform="rotate({{ rotate }}, {{ x }}, {{ y }})">
+    {% for line in text.splitlines() -%}
+    <tspan x="{{ x }}" dy="{{ line_spacing if loop.index0 else 0 }}em">{{ line }}</tspan>
+    {%- endfor %}
+  </text>
+</svg>
