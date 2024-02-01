@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-pjsk"
-version = "0.2.10"
+dynamic = ["version"]
 description = "Project Sekai Sticker Creator for NoneBot2."
 authors = [
     { name = "Agnes_Digital", email = "Z735803792@163.com" },
@@ -34,6 +34,10 @@ homepage = "https://github.com/lgc-NB2Dev/nonebot-plugin-pjsk"
 
 [tool.pdm.build]
 includes = []
+
+[tool.pdm.version]
+source = "file"
+path = "nonebot_plugin_pjsk/__init__.py"
 
 [build-system]
 requires = ["pdm-backend"]
