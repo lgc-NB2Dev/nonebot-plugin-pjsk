@@ -1,4 +1,4 @@
-from typing import List, Optional, Set
+from typing import Any, List, Optional, Set
 
 from nonebot import get_driver
 from pydantic import BaseModel, Field, HttpUrl, validator
@@ -29,13 +29,15 @@ class ConfigModel(BaseModel):
     pjsk_clear_cache: bool = False
 
     @validator("pjsk_assets_prefix", "pjsk_repo_prefix", pre=True)
-    def str_to_list(cls, v):  # noqa: N805
+    def str_to_list(cls, v: Any):  # noqa: N805
         if isinstance(v, str):
             v = [v]
+        if not (hasattr(v, "__iter__") and all(isinstance(x, str) for x in v)):
+            raise ValueError("value should be a iterable of strings")
         return v
 
     @validator("pjsk_assets_prefix", "pjsk_repo_prefix")
-    def append_slash(cls, v):  # noqa: N805
+    def append_slash(cls, v: List[str]) -> List[str]:  # noqa: N805
         return [v if v.endswith("/") else f"{v}/" for v in v]
 
 

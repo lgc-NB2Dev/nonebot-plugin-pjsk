@@ -4,6 +4,7 @@ from enum import Enum, auto
 from functools import lru_cache
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Iterable,
     List,
@@ -15,6 +16,7 @@ from typing import (
     Union,
     overload,
 )
+from typing_extensions import ParamSpec
 
 from httpx import AsyncClient
 from nonebot import logger
@@ -25,6 +27,8 @@ T = TypeVar("T")
 TN = TypeVar("TN", int, float)
 TA = TypeVar("TA")
 TB = TypeVar("TB")
+R = TypeVar("R")
+P = ParamSpec("P")
 
 
 class ResponseType(Enum):
@@ -102,8 +106,8 @@ def append_prefix(suffix: str, prefixes: Sequence[str]) -> List[str]:
 
 
 def with_semaphore(semaphore: Semaphore):
-    def decorator(func):
-        async def wrapper(*args, **kwargs):
+    def decorator(func: Callable[P, Awaitable[R]]):
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             async with semaphore:
                 return await func(*args, **kwargs)
 

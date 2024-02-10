@@ -40,11 +40,23 @@ cmd_generate_parser.add_argument(
 cmd_generate_parser.add_argument("-x", help="文字的中心 x 坐标")
 cmd_generate_parser.add_argument("-y", help="文字的中心 y 坐标")
 cmd_generate_parser.add_argument("-r", "--rotate", help="文字旋转的角度")
-cmd_generate_parser.add_argument("-s", "--size", help="文字的大小，不指定时会以默认大小为最大值自动调整")
-cmd_generate_parser.add_argument("-c", "--font-color", help="文字颜色，使用 16 进制格式")
+cmd_generate_parser.add_argument(
+    "-s",
+    "--size",
+    help="文字的大小，不指定时会以默认大小为最大值自动调整",
+)
+cmd_generate_parser.add_argument(
+    "-c",
+    "--font-color",
+    help="文字颜色，使用 16 进制格式",
+)
 # cmd_generate_parser.add_argument("-w", "--weight", help="文本粗细")
 cmd_generate_parser.add_argument("-W", "--stroke-width", help="文本描边宽度")
-cmd_generate_parser.add_argument("-C", "--stroke-color", help="文本描边颜色，使用 16 进制格式")
+cmd_generate_parser.add_argument(
+    "-C",
+    "--stroke-color",
+    help="文本描边颜色，使用 16 进制格式",
+)
 cmd_generate_parser.add_argument("-S", "--line-spacing", help="文本行间距")
 cmd_generate_parser.add_argument(
     "-A",
