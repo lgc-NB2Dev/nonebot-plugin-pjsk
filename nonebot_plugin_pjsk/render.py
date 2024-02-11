@@ -85,8 +85,8 @@ def to_router_url(path: Union[str, Path]) -> str:
 @asynccontextmanager
 async def get_routed_page(initial_html: Optional[str] = None):
     async with get_new_page(device_scale_factor=1) as page:
-        await page.route(f"{ROUTER_BASE_URL}", root_router)
         await page.route(f"{ROUTER_BASE_URL}**/*", file_router)
+        await page.route(f"{ROUTER_BASE_URL}", root_router)
         await page.goto(ROUTER_BASE_URL)
         if initial_html:
             await page.set_content(initial_html)
