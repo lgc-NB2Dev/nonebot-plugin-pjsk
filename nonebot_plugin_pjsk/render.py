@@ -11,8 +11,6 @@ from nonebot_plugin_htmlrender import get_new_page
 from playwright.async_api import Page, Request, Route
 from yarl import URL
 
-from nonebot_plugin_pjsk.utils import is_full_width, qor
-
 from .config import config
 from .resource import (
     DATA_FOLDER,
@@ -25,6 +23,7 @@ from .resource import (
     make_cache_key,
     write_cache,
 )
+from .utils import is_full_width, qor
 
 P = ParamSpec("P")
 

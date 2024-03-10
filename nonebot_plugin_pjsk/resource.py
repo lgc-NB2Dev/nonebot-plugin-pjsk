@@ -8,7 +8,8 @@ from typing import Any, Coroutine, List, Optional, overload
 import anyio
 import jinja2
 from nonebot import get_driver, logger
-from pydantic import BaseModel, Field, parse_raw_as
+from nonebot.compat import type_validate_json
+from pydantic import BaseModel, Field
 
 from .config import config
 from .utils import ResponseType, append_prefix, async_request, with_semaphore
@@ -148,7 +149,7 @@ async def load_sticker_info():
         loaded_text = await path.read_text(encoding="u8")
 
     LOADED_STICKER_INFO.clear()
-    LOADED_STICKER_INFO.extend(parse_raw_as(List[StickerInfo], loaded_text))
+    LOADED_STICKER_INFO.extend(type_validate_json(List[StickerInfo], loaded_text))
     sort_stickers()
 
 

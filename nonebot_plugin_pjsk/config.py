@@ -1,6 +1,6 @@
-from typing import Any, List, Optional, Set
+from typing import Annotated, Any, List, Optional, Set
 
-from nonebot import get_driver
+from nonebot import get_plugin_config
 from pydantic import BaseModel, Field, HttpUrl, validator
 
 
@@ -10,13 +10,13 @@ class ConfigModel(BaseModel):
     pjsk_req_retry: int = 1
     pjsk_req_proxy: Optional[str] = None
     pjsk_req_timeout: int = 10
-    pjsk_assets_prefix: List[HttpUrl] = Field(
+    pjsk_assets_prefix: List[Annotated[str, HttpUrl]] = Field(
         [
             "https://raw.gitmirror.com/TheOriginalAyaka/sekai-stickers/main/",
             "https://raw.githubusercontent.com/TheOriginalAyaka/sekai-stickers/main/",
         ],
     )
-    pjsk_repo_prefix: List[HttpUrl] = Field(
+    pjsk_repo_prefix: List[Annotated[str, HttpUrl]] = Field(
         [
             "https://raw.gitmirror.com/Agnes4m/nonebot_plugin_pjsk/main/",
             "https://raw.githubusercontent.com/Agnes4m/nonebot_plugin_pjsk/main/",
@@ -41,4 +41,4 @@ class ConfigModel(BaseModel):
         return [v if v.endswith("/") else f"{v}/" for v in v]
 
 
-config: ConfigModel = ConfigModel.parse_obj(get_driver().config.dict())
+config = get_plugin_config(ConfigModel)
