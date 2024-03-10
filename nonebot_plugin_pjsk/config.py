@@ -1,4 +1,5 @@
-from typing import Annotated, Any, List, Optional, Set
+from typing import Any, List, Optional, Set
+from typing_extensions import Annotated
 
 from nonebot import get_plugin_config
 from pydantic import BaseModel, Field, HttpUrl, validator
