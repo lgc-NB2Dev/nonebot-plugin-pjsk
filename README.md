@@ -181,13 +181,7 @@ Telegram：[@lgc2333](https://t.me/lgc2333)
 
 ### student_2333
 
-- [爱发电](https://afdian.net/@lgc2333)
-- <details>
-    <summary>赞助二维码（点击展开）</summary>
-
-  ![讨饭](https://raw.githubusercontent.com/lgc2333/ShigureBotMenu/master/src/imgs/sponsor.png)
-
-  </details>
+- [点这里](https://blog.lgc2333.top/donate)
 
 ## 📝 更新日志
 
