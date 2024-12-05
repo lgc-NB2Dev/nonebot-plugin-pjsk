@@ -75,7 +75,7 @@ async def async_request(
     url, rest = urls[0], urls[1:]
     try:
         async with AsyncClient(
-            proxies=config.pjsk_req_proxy,
+            proxy=config.pjsk_req_proxy,
             timeout=config.pjsk_req_timeout,
         ) as client:
             response = await client.get(url)
