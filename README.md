@@ -167,7 +167,7 @@ plugins = [
 
 QQ 群: [424506063](https://jq.qq.com/?_wv=1027&k=l82tMuPG)
 
-### student_2333
+### LgCookie
 
 QQ：3076823485  
 Telegram：[@lgc2333](https://t.me/lgc2333)  
@@ -188,7 +188,7 @@ Telegram：[@lgc2333](https://t.me/lgc2333)
 
 - [爱发电](https://afdian.net/a/agnes_digital)
 
-### student_2333
+### LgCookie
 
 - [点这里](https://blog.lgc2333.top/donate)
 

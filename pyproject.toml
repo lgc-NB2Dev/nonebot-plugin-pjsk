@@ -4,7 +4,7 @@ dynamic = ["version"]
 description = "Project Sekai Sticker Creator for NoneBot2."
 authors = [
     { name = "Agnes_Digital", email = "Z735803792@163.com" },
-    { name = "student_2333", email = "lgc2333@126.com" },
+    { name = "LgCookie", email = "lgc2333@126.com" },
 ]
 dependencies = [
     "nonebot2>=2.3.1",
