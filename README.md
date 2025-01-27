@@ -1,5 +1,7 @@
 <!-- markdownlint-disable MD024 MD026 MD031 MD033 MD036 MD041 -->
 
+**本项目停止维护，请迁移到新项目 [nonebot-plugin-meme-stickers](https://github.com/lgc-NB2Dev/nonebot-plugin-meme-stickers)**
+
 <div align="center">
 
 <a href="https://v2.nonebot.dev/store">
